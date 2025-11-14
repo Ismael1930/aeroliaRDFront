@@ -32,9 +32,9 @@ const Header1 = () => {
           <div className="row justify-between items-center">
             <div className="col-auto">
               <div className="d-flex items-center">
-                <Link href="/" className="header-logo mr-50">
-                  <img src="/img/general/logo-dark-3.svg" alt="logo icon" />
-                  <img src="/img/general/logo-dark-3.svg" alt="logo icon" />
+                <Link href="/" className="header-logo mr-50 d-flex items-center">
+                  <img src="/img/Logo.png" alt="logo icon" style={{width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover'}} />
+                  <span className="text-20 fw-600 text-dark-1 ml-10">AerolineaRD</span>
                 </Link>
                 {/* End logo */}
 
@@ -56,13 +56,13 @@ const Header1 = () => {
                     href="/login"
                     className="button px-30 fw-400 text-14 -blue-1 bg-dark-4 h-50 text-white"
                   >
-                    Become An Expert
+                    Conviértete en Experto
                   </Link>
                   <Link
                     href="/signup"
                     className="button px-30 fw-400 text-14 border-dark-4 -blue-1 h-50 text-dark-4 ml-20"
                   >
-                    Sign In / Register
+                    Iniciar Sesión / Registrarse
                   </Link>
                 </div>
                 {/* End d-flex */}

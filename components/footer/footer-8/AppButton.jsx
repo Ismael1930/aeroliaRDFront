@@ -4,14 +4,14 @@ const AppButton = () => {
       id: 1,
       icon: "icon-apple",
       link: "https://www.apple.com/app-store/",
-      text: "Download on the",
+      text: "Descargar en",
       market: "Apple Store",
     },
     {
       id: 2,
       icon: "icon-play-market",
       link: "https://play.google.com/store/apps/?hl=en&gl=US",
-      text: "Get in on",
+      text: "Obtener en",
       market: "Google Play",
     },
   ];

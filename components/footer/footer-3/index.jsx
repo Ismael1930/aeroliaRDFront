@@ -12,7 +12,10 @@ const index = () => {
         <div className="pt-60 pb-60">
           <div className="row y-gap-40 justify-between xl:justify-start">
             <div className="col-xl-4 col-lg-6">
-              <img src="/img/general/logo-dark.svg" alt="image" />
+              <div className="d-flex items-center">
+                <img src="/img/Logo.png" alt="image" style={{width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover'}} />
+                <span className="text-20 fw-600 text-dark-1 ml-10">AerolineaRD</span>
+              </div>
               <div className="row y-gap-30 justify-between pt-30">
                 <ContactInfo />
               </div>
@@ -20,7 +23,7 @@ const index = () => {
 
               <div className="row x-gap-20 y-gap-15 pt-60">
                 <div className="col-12">
-                  <h5 className="text-16 fw-500">Your all-in-one travel app</h5>
+                  <h5 className="text-16 fw-500">Tu app todo en uno para viajar</h5>
                 </div>
                 {/* End .col */}
 
@@ -30,7 +33,7 @@ const index = () => {
 
               <div className="mt-60">
                 <h5 className="text-16 fw-500 mb-10">
-                  Follow us on social media
+                  Síguenos en redes sociales
                 </h5>
                 <div className="d-flex x-gap-20 items-center">
                   <Social />
@@ -43,7 +46,7 @@ const index = () => {
               <div className="row y-gap-30">
                 <div className="col-12">
                   <h5 className="text-16 fw-500 mb-15">
-                    Get Updates &amp; More
+                    Recibe Actualizaciones y Más
                   </h5>
                   <Subscribe />
                 </div>

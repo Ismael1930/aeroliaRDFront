@@ -41,7 +41,7 @@ const LoginForm = () => {
   return (
     <form className="row y-gap-20" onSubmit={handleSubmit}>
       <div className="col-12">
-        <h1 className="text-22 fw-500">Welcome back</h1>
+        <h1 className="text-22 fw-500">Bienvenido de nuevo</h1>
         <p className="mt-10">
           No tienes una cuenta?{" "}
           <Link href="/signup" className="text-blue-1">

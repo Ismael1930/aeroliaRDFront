@@ -12,8 +12,8 @@ import Testimonial from "@/components/home/home-10/Testimonial";
 import PopularRoutes from "@/components/home/home-10/PopularRoutes";
 
 export const metadata = {
-  title: "Home-10 || GoTrip - Travel & Tour React NextJS Template",
-  description: "GoTrip - Travel & Tour React NextJS Template",
+  title: "Inicio || GoTrip - Plantilla de Viajes y Tours",
+  description: "GoTrip - Plantilla de Viajes y Tours",
 };
 
 const home_10 = () => {
@@ -32,9 +32,9 @@ const home_10 = () => {
           <div className="row justify-center text-center">
             <div className="col-auto">
               <div className="sectionTitle -md">
-                <h2 className="sectionTitle__title">Why Choose Us</h2>
+                <h2 className="sectionTitle__title">Por Qué Elegirnos</h2>
                 <p className=" sectionTitle__text mt-5 sm:mt-0">
-                  These popular destinations have a lot to offer
+                  Estos destinos populares tienen mucho que ofrecer
                 </p>
               </div>
             </div>
@@ -55,9 +55,9 @@ const home_10 = () => {
           <div className="row y-gap-20 justify-between items-end">
             <div className="col-auto">
               <div className="sectionTitle -md">
-                <h2 className="sectionTitle__title">Recommended Flights</h2>
+                <h2 className="sectionTitle__title">Vuelos Recomendados</h2>
                 <p className=" sectionTitle__text mt-5 sm:mt-0">
-                  Interdum et malesuada fames ac ante ipsum
+                  Descubre las mejores ofertas de vuelos
                 </p>
               </div>
             </div>
@@ -68,7 +68,7 @@ const home_10 = () => {
                 href="/flight-list-v1"
                 className="button -md -blue-1 bg-blue-1-05 text-blue-1"
               >
-                More <div className="icon-arrow-top-right ml-15" />
+                Ver Más <div className="icon-arrow-top-right ml-15" />
               </Link>
             </div>
             {/* End .col */}
@@ -89,9 +89,9 @@ const home_10 = () => {
           <div className="row justify-between items-end">
             <div className="col-auto">
               <div className="sectionTitle -md">
-                <h2 className="sectionTitle__title">Top Destinations</h2>
+                <h2 className="sectionTitle__title">Mejores Destinos</h2>
                 <p className=" sectionTitle__text mt-5 sm:mt-0">
-                  These popular destinations have a lot to offer
+                  Estos destinos populares tienen mucho que ofrecer
                 </p>
               </div>
             </div>
@@ -102,7 +102,7 @@ const home_10 = () => {
                 href="#"
                 className="button -md -blue-1 bg-blue-1-05 text-blue-1"
               >
-                More <div className="icon-arrow-top-right ml-15" />
+                Ver Más <div className="icon-arrow-top-right ml-15" />
               </a>
             </div>
             {/* End col-auto */}
@@ -141,9 +141,9 @@ const home_10 = () => {
           <div className="row justify-between items-end">
             <div className="col-auto">
               <div className="sectionTitle -md">
-                <h2 className="sectionTitle__title">Popular Routes</h2>
+                <h2 className="sectionTitle__title">Rutas Populares</h2>
                 <p className=" sectionTitle__text mt-5 sm:mt-0">
-                  These popular destinations have a lot to offer
+                  Estos destinos populares tienen mucho que ofrecer
                 </p>
               </div>
             </div>
@@ -154,7 +154,7 @@ const home_10 = () => {
                 href="#"
                 className="button -md -blue-1 bg-blue-1-05 text-blue-1"
               >
-                More <div className="icon-arrow-top-right ml-15" />
+                Ver Más <div className="icon-arrow-top-right ml-15" />
               </Link>
             </div>
           </div>
@@ -178,10 +178,10 @@ const home_10 = () => {
             <div className="col-auto">
               <div className="sectionTitle -md">
                 <h2 className="sectionTitle__title">
-                  Get inspiration for your next trip
+                  Inspírate para tu próximo viaje
                 </h2>
                 <p className=" sectionTitle__text mt-5 sm:mt-0">
-                  Interdum et malesuada fames
+                  Descubre ideas para tu próxima aventura
                 </p>
               </div>
             </div>

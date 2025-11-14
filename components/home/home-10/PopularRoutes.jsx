@@ -22,9 +22,9 @@ const PopularRoutes = () => {
       id: 2,
       tag: "",
       img: "/img/rentals/2.png",
-      destination: "Istanbul - Paris",
-      tripType: "Round-trip",
-      data: "Wed, Jun 1 - Sun, Jun 5",
+      destination: "Estambul - París",
+      tripType: "Ida y vuelta",
+      data: "Mié, 1 Jun - Dom, 5 Jun",
       price: "72",
       delayAnimation: "200",
     },
@@ -32,9 +32,9 @@ const PopularRoutes = () => {
       id: 3,
       tag: "",
       img: "/img/rentals/3.png",
-      destination: "Istanbul - Antalya",
-      tripType: "Round-trip",
-      data: "Wed, Jun 1 - Sun, Jun 5",
+      destination: "Estambul - Antalya",
+      tripType: "Ida y vuelta",
+      data: "Mié, 1 Jun - Dom, 5 Jun",
       price: "72",
       delayAnimation: "300",
     },
@@ -42,8 +42,8 @@ const PopularRoutes = () => {
       id: 4,
       tag: "",
       img: "/img/rentals/4.png",
-      destination: "Istanbul - London",
-      tripType: "Round-trip",
+      destination: "Estambul - Londres",
+      tripType: "Ida y vuelta",
       data: "Wed, Jun 1 - Sun, Jun 5",
       price: "72",
       delayAnimation: "400",
@@ -52,9 +52,9 @@ const PopularRoutes = () => {
       id: 5,
       tag: "",
       img: "/img/rentals/1.png",
-      destination: "Istanbul - New York",
-      tripType: "Round-trip",
-      data: "Wed, Jun 1 - Sun, Jun 5",
+      destination: "Estambul - Nueva York",
+      tripType: "Ida y vuelta",
+      data: "Mié, 1 Jun - Dom, 5 Jun",
       price: "72",
       delayAnimation: "500",
     },
@@ -62,9 +62,9 @@ const PopularRoutes = () => {
       id: 6,
       tag: "",
       img: "/img/rentals/2.png",
-      destination: "Istanbul - Paris",
-      tripType: "Round-trip",
-      data: "Wed, Jun 1 - Sun, Jun 5",
+      destination: "Estambul - París",
+      tripType: "Ida y vuelta",
+      data: "Mié, 1 Jun - Dom, 5 Jun",
       price: "72",
       delayAnimation: "600",
     },
@@ -128,7 +128,7 @@ const PopularRoutes = () => {
                 </div>
                 <div className="text-light-1  mt-5">
                   <span className="fw-500 text-dark-1">US${item.price}</span>/
-                  per night
+                  por noche
                 </div>
               </div>
             </Link>

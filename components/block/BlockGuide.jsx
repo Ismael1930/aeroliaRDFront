@@ -3,22 +3,22 @@ const BlockGuide = () => {
     {
       id: 1,
       icon: "/img/featureIcons/1/1.svg",
-      title: "Best Price Guarantee",
-      text: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
+      title: "Garantía del Mejor Precio",
+      text: `Encuentra las mejores tarifas para tus vuelos y viajes.`,
       delayAnim: "100",
     },
     {
       id: 2,
       icon: "/img/featureIcons/1/2.svg",
-      title: "Easy & Quick Booking",
-      text: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
+      title: "Reserva Fácil y Rápida",
+      text: `Reserva tus vuelos en minutos con nuestro sistema intuitivo.`,
       delayAnim: "200",
     },
     {
       id: 3,
       icon: "/img/featureIcons/1/3.svg",
-      title: "Customer Care 24/7",
-      text: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
+      title: "Atención al Cliente 24/7",
+      text: `Estamos disponibles las 24 horas para asistirte en lo que necesites.`,
       delayAnim: "300",
     },
   ];

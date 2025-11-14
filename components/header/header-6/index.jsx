@@ -32,9 +32,9 @@ const Header1 = () => {
           <div className="row justify-between items-center">
             <div className="col-auto">
               <div className="d-flex items-center">
-                <Link href="/" className="header-logo mr-20">
-                  <img src="/img/general/logo-light.svg" alt="logo icon" />
-                  <img src="/img/general/logo-dark.svg" alt="logo icon" />
+                <Link href="/" className="header-logo mr-20 d-flex items-center">
+                  <img src="/img/Logo.png" alt="logo icon" style={{width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover'}} />
+                  <span className="text-20 fw-600 ml-10">AerolineaRD</span>
                 </Link>
                 {/* End logo */}
               </div>

@@ -4,14 +4,14 @@ const Subscribe = () => {
       <input
         className="bg-white rounded-8"
         type="email"
-        placeholder="Your Email"
+        placeholder="Tu Email"
         required
       />
       <button
         type="submit"
         className="absolute px-20 h-full text-15 fw-500 underline text-dark-1"
       >
-        Subscribe
+        Suscribirse
       </button>
     </div>
   );

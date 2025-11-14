@@ -40,8 +40,9 @@ const HeaderDashBoard = () => {
       >
         <div className="header__container px-30 sm:px-20">
           <div className="-left-side">
-            <Link href="/" className="header-logo">
-              <img src="/img/general/logo-dark.svg" alt="logo icon" />
+            <Link href="/" className="header-logo d-flex items-center">
+              <img src="/img/Logo.png" alt="logo icon" style={{width: '45px', height: '45px', borderRadius: '8px', objectFit: 'cover'}} />
+              <span className="text-18 fw-600 text-dark-1 ml-10">AerolineaRD</span>
             </Link>
             {/* End logo */}
           </div>

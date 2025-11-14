@@ -58,8 +58,9 @@ const MobileMenu = () => {
   return (
     <>
       <div className="pro-header d-flex align-items-center justify-between border-bottom-light">
-        <Link href="/">
-          <img src="/img/general/logo-dark.svg" alt="brand" />
+        <Link href="/" className="d-flex items-center">
+          <img src="/img/Logo.png" alt="brand" style={{width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover'}} />
+          <span className="text-18 fw-600 text-dark-1 ml-10">AerolineaRD</span>
         </Link>
         {/* End logo */}
 

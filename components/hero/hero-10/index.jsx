@@ -13,10 +13,10 @@ const Index = () => {
                 data-aos="fade-up"
                 data-aos-delay="100"
               >
-                Where do You Want To Fly
+                ¿A Dónde Quieres Volar?
               </h1>
               <p className="mt-5" data-aos="fade-up" data-aos-delay="200">
-                Discover amzaing places at exclusive deals
+                Descubre lugares increíbles con ofertas exclusivas
               </p>
               <div data-aos="fade-up" data-aos-delay="300">
                 <div className="row y-gap-20 items-center pt-30">
