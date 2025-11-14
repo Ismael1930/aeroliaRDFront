@@ -46,11 +46,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (userData) => {
+  const register = async (email, password) => {
     try {
-      const data = await authService.register(userData);
-      setUser(data.user);
-      setIsAuth(true);
+      const data = await authService.register(email, password);
       return data;
     } catch (error) {
       throw error;

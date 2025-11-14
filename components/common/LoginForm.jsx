@@ -30,7 +30,7 @@ const LoginForm = () => {
 
     try {
       await login(formData.email, formData.password);
-      router.push('/dashboard'); // Redirigir al dashboard después del login
+      router.push('/dashboard/db-dashboard'); // Redirigir al dashboard después del login
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {
@@ -43,9 +43,9 @@ const LoginForm = () => {
       <div className="col-12">
         <h1 className="text-22 fw-500">Welcome back</h1>
         <p className="mt-10">
-          Don&apos;t have an account yet?{" "}
+          No tienes una cuenta?{" "}
           <Link href="/signup" className="text-blue-1">
-            Sign up for free
+            Regístrate gratis
           </Link>
         </p>
       </div>
@@ -83,14 +83,14 @@ const LoginForm = () => {
             onChange={handleChange}
             required 
           />
-          <label className="lh-1 text-14 text-light-1">Password</label>
+          <label className="lh-1 text-14 text-light-1">Contraseña</label>
         </div>
       </div>
       {/* End .col */}
 
       <div className="col-12">
-        <Link href="/forgot-password" className="text-14 fw-500 text-blue-1 underline">
-          Forgot your password?
+        <Link href="/help-center" className="text-14 fw-500 text-blue-1 underline">
+          ¿Olvidaste tu contraseña?
         </Link>
       </div>
       {/* End .col */}

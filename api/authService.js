@@ -8,12 +8,11 @@ export const authService = {
     try {
       const response = await api.post('/auth/login', { email, password });
       
-      // Guardar token y datos del usuario
+      // Guardar token
       if (response.data.token) {
         saveToken(response.data.token);
-      }
-      if (response.data.user) {
-        saveUser(response.data.user);
+        // Guardar email como datos básicos del usuario
+        saveUser({ email });
       }
       
       return response.data;
@@ -23,17 +22,12 @@ export const authService = {
   },
 
   // Register
-  register: async (userData) => {
+  register: async (email, password) => {
     try {
-      const response = await api.post('/auth/register', userData);
-      
-      // Guardar token y datos del usuario si se devuelven
-      if (response.data.token) {
-        saveToken(response.data.token);
-      }
-      if (response.data.user) {
-        saveUser(response.data.user);
-      }
+      const response = await api.post('/auth/register', { 
+        email, 
+        password
+      });
       
       return response.data;
     } catch (error) {
