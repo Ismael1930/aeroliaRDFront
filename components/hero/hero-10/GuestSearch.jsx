@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 const counters = [
   { name: "Adultos", defaultValue: 2 },
   { name: "Niños", defaultValue: 1 },
@@ -61,14 +61,26 @@ const Counter = ({ name, defaultValue, onCounterChange }) => {
   );
 };
 
-const GuestSearch = () => {
+const GuestSearch = ({ onChange }) => {
   const [guestCounts, setGuestCounts] = useState({
     Adultos: 2,
     Niños: 1,
     Habitaciones: 1,
   });
+
+  // Notificar valores iniciales cuando el componente se monta
+  useEffect(() => {
+    if (onChange) {
+      onChange({ adultos: guestCounts.Adultos, ninos: guestCounts.Niños, habitaciones: guestCounts.Habitaciones });
+    }
+  }, []);
+
   const handleCounterChange = (name, value) => {
-    setGuestCounts((prevState) => ({ ...prevState, [name]: value }));
+    const newCounts = { ...guestCounts, [name]: value };
+    setGuestCounts(newCounts);
+    if (onChange) {
+      onChange({ adultos: newCounts.Adultos, ninos: newCounts.Niños, habitaciones: newCounts.Habitaciones });
+    }
   };
   return (
     <div className="searchMenu-guests px-24 lg:py-20 lg:px-0 js-form-dd js-form-counters">

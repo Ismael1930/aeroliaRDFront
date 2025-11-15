@@ -1,7 +1,14 @@
+'use client'
+
+import { useState } from 'react';
 import FilterSelect from "./FilterSelect";
 import MainFilterSearchBox from "./MainFilterSearchBox";
 
 const Index = () => {
+  const [claseSeleccionada, setClaseSeleccionada] = useState("Económica");
+  const [tipoViaje, setTipoViaje] = useState("Ida y Vuelta");
+  const [maletas, setMaletas] = useState("0 Maletas");
+
   return (
     <section className="masthead -type-10">
       <div className="container-1500">
@@ -20,11 +27,19 @@ const Index = () => {
               </p>
               <div data-aos="fade-up" data-aos-delay="300">
                 <div className="row y-gap-20 items-center pt-30">
-                  <FilterSelect />
+                  <FilterSelect 
+                    onClaseChange={setClaseSeleccionada}
+                    onTipoViajeChange={setTipoViaje}
+                    onMaletasChange={setMaletas}
+                  />
                 </div>
                 {/* End .row */}
 
-                <MainFilterSearchBox />
+                <MainFilterSearchBox 
+                  claseSeleccionada={claseSeleccionada}
+                  tipoViaje={tipoViaje}
+                  maletas={maletas}
+                />
                 {/* End filter content */}
               </div>
             </div>

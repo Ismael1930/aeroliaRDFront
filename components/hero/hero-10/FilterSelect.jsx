@@ -1,12 +1,30 @@
 
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const FilterSelect = () => {
+const FilterSelect = ({ onClaseChange, onTipoViajeChange, onMaletasChange }) => {
   const [returnValue, setReturnValue] = useState("Ida y Vuelta");
   const [economyValue, setEconomyValue] = useState("Económica");
   const [bagsValue, setBagsValue] = useState("0 Maletas");
+
+  useEffect(() => {
+    if (onClaseChange) {
+      onClaseChange(economyValue);
+    }
+  }, [economyValue, onClaseChange]);
+
+  useEffect(() => {
+    if (onTipoViajeChange) {
+      onTipoViajeChange(returnValue);
+    }
+  }, [returnValue, onTipoViajeChange]);
+
+  useEffect(() => {
+    if (onMaletasChange) {
+      onMaletasChange(bagsValue);
+    }
+  }, [bagsValue, onMaletasChange]);
 
   const handleReturnValueChange = (value) => {
     setReturnValue(value);
