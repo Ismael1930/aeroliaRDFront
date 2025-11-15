@@ -36,7 +36,7 @@ const Header1 = () => {
               <div className="d-flex items-center">
                 <Link href="/" className="header-logo mr-20 d-flex items-center">
                   <img src="/img/Logo.png" alt="logo icon" style={{width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover'}} />
-                  <span className="text-20 fw-600 ml-10">AerolineaRD</span>
+                  <span className="text-20 fw-600 text-white ml-10">AerolineaRD</span>
                 </Link>
                 {/* End logo */}
 

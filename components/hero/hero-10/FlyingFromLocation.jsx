@@ -48,12 +48,12 @@ const FlyingFromLocation = () => {
           data-bs-auto-close="true"
           data-bs-offset="0,22"
         >
-          <h4 className="text-15 fw-500 ls-2 lh-16">Flying From</h4>
+          <h4 className="text-15 fw-500 ls-2 lh-16">Desde</h4>
           <div className="text-15 text-light-1 ls-2 lh-16">
             <input
               autoComplete="off"
               type="search"
-              placeholder="Where are you going?"
+              placeholder="¿Desde dónde viajas?"
               className="js-search js-dd-focus"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}

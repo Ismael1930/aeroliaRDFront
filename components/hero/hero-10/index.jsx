@@ -42,7 +42,7 @@ const Index = () => {
           <div className="row y-gap-30 flex-nowrap">
             <div className="col-auto">
               <img
-                src="/img/masthead/10/1.png"
+                src="https://creativelayers.net/themes/gotrip-html/img/masthead/10/1.png"
                 alt="image"
                 className="rounded-16"
               />
@@ -51,7 +51,7 @@ const Index = () => {
 
             <div className="col-auto">
               <img
-                src="/img/masthead/10/2.png"
+                src="https://creativelayers.net/themes/gotrip-html/img/masthead/10/2.png"
                 alt="image"
                 className="rounded-16"
               />

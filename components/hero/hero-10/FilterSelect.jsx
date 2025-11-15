@@ -4,9 +4,9 @@
 import { useState } from "react";
 
 const FilterSelect = () => {
-  const [returnValue, setReturnValue] = useState("Return");
-  const [economyValue, setEconomyValue] = useState("Economy");
-  const [bagsValue, setBagsValue] = useState("0 Bags");
+  const [returnValue, setReturnValue] = useState("Ida y Vuelta");
+  const [economyValue, setEconomyValue] = useState("Económica");
+  const [bagsValue, setBagsValue] = useState("0 Maletas");
 
   const handleReturnValueChange = (value) => {
     setReturnValue(value);
@@ -22,32 +22,30 @@ const FilterSelect = () => {
 
   const dropdownOptions = [
     {
-      title: "Return",
+      title: "Tipo de Viaje",
       value: returnValue,
       list: [
-        { label: "Animation" },
-        { label: "Design" },
-        { label: "Illustration" },
-        { label: "Lifestyle" },
-        { label: "Business" },
+        { label: "Ida y Vuelta" },
+        { label: "Solo Ida" },
+        { label: "Múltiples Destinos" },
       ],
       onChange: handleReturnValueChange,
     },
     {
-      title: "Economy",
+      title: "Clase",
       value: economyValue,
-      list: [{ label: "Economy" }, { label: "Middle" }, { label: "Business" }],
+      list: [{ label: "Económica" }, { label: "Ejecutiva" }, { label: "Primera Clase" }],
       onChange: handleEconomyValueChange,
     },
     {
-      title: "Bags",
+      title: "Maletas",
       value: bagsValue,
       list: [
-        { label: "0 Bags" },
-        { label: "1 Bag" },
-        { label: "2 Bags" },
-        { label: "3 Bags" },
-        { label: "4 Bags" },
+        { label: "0 Maletas" },
+        { label: "1 Maleta" },
+        { label: "2 Maletas" },
+        { label: "3 Maletas" },
+        { label: "4 Maletas" },
       ],
       onChange: handleBagsValueChange,
     },
