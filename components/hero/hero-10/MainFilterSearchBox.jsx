@@ -78,17 +78,19 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas }) => {
           </div>
           {/* End Depart */}
 
-          <div className="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
-            <div>
-              <h4 className="text-15 fw-500 ls-2 lh-16">Regreso</h4>
-              <DateSearch 
-                onChange={(inicio, fin) => {
-                  setFechaRegresoInicio(inicio);
-                  setFechaRegresoFin(fin);
-                }} 
-              />
+          {tipoViaje !== "Solo Ida" && (
+            <div className="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
+              <div>
+                <h4 className="text-15 fw-500 ls-2 lh-16">Regreso</h4>
+                <DateSearch 
+                  onChange={(inicio, fin) => {
+                    setFechaRegresoInicio(inicio);
+                    setFechaRegresoFin(fin);
+                  }} 
+                />
+              </div>
             </div>
-          </div>
+          )}
           {/* End Return */}
 
           <GuestSearch onChange={setPasajeros} />
