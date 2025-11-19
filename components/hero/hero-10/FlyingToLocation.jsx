@@ -2,22 +2,34 @@
 'use client'
 
 import { useState, useEffect } from "react";
-import { obtenerAeropuertos } from "@/api/vueloService";
+import { obtenerAeropuertos } from "@/api/aeropuertoService";
 
 const FlyingToLocation = ({ onSelect }) => {
   const [searchValue, setSearchValue] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [aeropuertos, setAeropuertos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const cargarAeropuertos = async () => {
       try {
-        const response = await obtenerAeropuertos();
-        if (response.success) {
-          setAeropuertos(response.data);
+        setLoading(true);
+        setError(null);
+        const data = await obtenerAeropuertos();
+        // La respuesta es directamente un array de aeropuertos
+        if (Array.isArray(data)) {
+          setAeropuertos(data);
+        } else if (data.success && Array.isArray(data.data)) {
+          setAeropuertos(data.data);
+        } else {
+          setError('No se pudieron cargar los aeropuertos');
         }
       } catch (error) {
         console.error('Error al cargar aeropuertos:', error);
+        setError('Error de conexión con el servidor.');
+      } finally {
+        setLoading(false);
       }
     };
     cargarAeropuertos();
@@ -72,30 +84,46 @@ const FlyingToLocation = ({ onSelect }) => {
 
         <div className="shadow-2 dropdown-menu min-width-400">
           <div className="bg-white px-20 py-20 sm:px-0 sm:py-15 rounded-4">
-            <ul className="y-gap-5 js-results" style={{maxHeight: '300px', overflowY: 'auto'}}>
-              {locationSearchContent.map((item, index) => (
-                <li
-                  className={`-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option mb-1 ${
-                    selectedItem && selectedItem.id === item.id ? "active" : ""
-                  }`}
-                  key={`aeropuerto-${item.id}-${index}`}
-                  role="button"
-                  onClick={() => handleOptionClick(item)}
-                >
-                  <div className="d-flex">
-                    <div className="icon-location-2 text-light-1 text-20 pt-4" />
-                    <div className="ml-10">
-                      <div className="text-15 lh-12 fw-500 js-search-option-target">
-                        {item.nombre || item.name} {item.codigo && `(${item.codigo})`}
-                      </div>
-                      <div className="text-14 lh-12 text-light-1 mt-5">
-                        {item.ciudad || item.address}
+            {loading ? (
+              <div className="text-center py-20">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-20 px-20">
+                <div className="text-red-1 text-15">{error}</div>
+              </div>
+            ) : locationSearchContent.length === 0 ? (
+              <div className="text-center py-20 px-20">
+                <div className="text-light-1 text-15">No se encontraron aeropuertos</div>
+              </div>
+            ) : (
+              <ul className="y-gap-5 js-results" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                {locationSearchContent.map((item, index) => (
+                  <li
+                    className={`-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option mb-1 ${
+                      selectedItem && selectedItem.id === item.id ? "active" : ""
+                    }`}
+                    key={`aeropuerto-${item.id}-${index}`}
+                    role="button"
+                    onClick={() => handleOptionClick(item)}
+                  >
+                    <div className="d-flex">
+                      <div className="icon-location-2 text-light-1 text-20 pt-4" />
+                      <div className="ml-10">
+                        <div className="text-15 lh-12 fw-500 js-search-option-target">
+                          {item.nombre || item.name} {item.codigo && `(${item.codigo})`}
+                        </div>
+                        <div className="text-14 lh-12 text-light-1 mt-5">
+                          {item.ciudad || item.address}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

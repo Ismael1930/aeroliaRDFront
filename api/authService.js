@@ -1,50 +1,65 @@
 import api from './index';
 import { saveToken, saveUser, clearSession } from './sessionUtils';
 
-// Servicio de autenticación
+/**
+ * Registrar un nuevo usuario
+ * @param {string} email - Email del usuario
+ * @param {string} password - Contraseña
+ * @param {string} role - Rol (Cliente, Admin, Operador) - default: Cliente
+ */
+export const register = async (email, password, role = 'Cliente') => {
+  try {
+    const response = await api.post('/auth/register', { 
+      email, 
+      password,
+      role
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error en register:', error);
+    throw error.response?.data || { message: 'Error al registrar usuario' };
+  }
+};
+
+/**
+ * Iniciar sesión
+ * @param {string} email - Email
+ * @param {string} password - Contraseña
+ */
+export const login = async (email, password) => {
+  try {
+    const response = await api.post('/auth/login', { email, password });
+    
+    // Guardar token
+    if (response.data.token) {
+      saveToken(response.data.token);
+      // Guardar datos básicos del usuario
+      saveUser({ email });
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error en login:', error);
+    throw error.response?.data || { message: 'Error al iniciar sesión' };
+  }
+};
+
+/**
+ * Cerrar sesión
+ */
+export const logout = async () => {
+  try {
+    clearSession();
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error);
+  }
+};
+
+// Objeto de compatibilidad con el código existente
 export const authService = {
-  // Login
-  login: async (email, password) => {
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      
-      // Guardar token
-      if (response.data.token) {
-        saveToken(response.data.token);
-        // Guardar email como datos básicos del usuario
-        saveUser({ email });
-      }
-      
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Error al iniciar sesión' };
-    }
-  },
-
-  // Register
-  register: async (email, password) => {
-    try {
-      const response = await api.post('/auth/register', { 
-        email, 
-        password
-      });
-      
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Error al registrar usuario' };
-    }
-  },
-
-  // Logout
-  logout: async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    } finally {
-      clearSession();
-    }
-  },
+  login,
+  register: (email, password) => register(email, password, 'Cliente'),
+  logout,
 
   // Obtener perfil del usuario
   getProfile: async () => {

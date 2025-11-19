@@ -41,9 +41,19 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas }) => {
 
       const response = await buscarVuelos(filtros);
       
-      if (response.success) {
+      // El backend puede retornar directamente un array o un objeto con {success, data}
+      let vuelos = [];
+      if (Array.isArray(response)) {
+        vuelos = response;
+      } else if (response.success && Array.isArray(response.data)) {
+        vuelos = response.data;
+      } else if (response.data) {
+        vuelos = Array.isArray(response.data) ? response.data : [response.data];
+      }
+
+      if (vuelos.length > 0) {
         // Guardar resultados en localStorage para mostrarlos en la página de resultados
-        localStorage.setItem('resultadosVuelos', JSON.stringify(response.data));
+        localStorage.setItem('resultadosVuelos', JSON.stringify(vuelos));
         router.push('/flight-list-v1');
       } else {
         alert('No se encontraron vuelos con los criterios seleccionados');
