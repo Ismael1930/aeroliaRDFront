@@ -21,7 +21,7 @@ const MainFilterSearchBox = () => {
 
           <div className="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
             <div>
-              <h4 className="text-15 fw-500 ls-2 lh-16">Depart</h4>
+              <h4 className="text-15 fw-500 ls-2 lh-16">Salida</h4>
               <DateSearch />
             </div>
           </div>
@@ -29,7 +29,7 @@ const MainFilterSearchBox = () => {
 
           <div className="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
             <div>
-              <h4 className="text-15 fw-500 ls-2 lh-16">Return</h4>
+              <h4 className="text-15 fw-500 ls-2 lh-16">Regreso</h4>
               <DateSearch />
             </div>
           </div>
@@ -41,7 +41,7 @@ const MainFilterSearchBox = () => {
           <div className="button-item">
             <button className="mainSearch__submit button -blue-1 py-15 px-35 h-60 col-12 rounded-4 bg-dark-3 text-white">
               <i className="icon-search text-20 mr-10" />
-              Search
+              Buscar
             </button>
           </div>
           {/* End search button_item */}

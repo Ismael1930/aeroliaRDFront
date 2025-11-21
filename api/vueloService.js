@@ -13,24 +13,21 @@ import api from './index';
  */
 export const buscarVuelos = async (filtros = {}) => {
   try {
-    const params = {};
-    if (filtros.origen) params.origen = filtros.origen;
-    if (filtros.destino) params.destino = filtros.destino;
-    if (filtros.fechaSalida) params.fechaSalida = filtros.fechaSalida;
-    if (filtros.fechaRegreso) params.fechaRegreso = filtros.fechaRegreso;
-    if (filtros.adultos) params.adultos = filtros.adultos;
-    if (filtros.ninos) params.ninos = filtros.ninos;
-    if (filtros.clase) params.clase = filtros.clase;
-
-    const response = await api.get('/vuelo/buscar', { params });
+    console.log('=== buscarVuelos: Iniciando búsqueda ===');
+    console.log('Filtros enviados:', filtros);
+    
+    const response = await api.post('/vuelo/buscar', filtros);
+    console.log('Respuesta exitosa:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error en buscarVuelos:', error);
+    console.error('=== Error en buscarVuelos ===');
     console.error('Error details:', {
       message: error.message,
       status: error.response?.status,
+      statusText: error.response?.statusText,
       data: error.response?.data,
-      params: error.config?.params
+      url: error.config?.url,
+      method: error.config?.method
     });
     throw error;
   }

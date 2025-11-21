@@ -3,9 +3,9 @@
 
 import React, { useState } from "react";
 const counters = [
-  { name: "Adults", defaultValue: 2 },
-  { name: "Children", defaultValue: 1 },
-  { name: "Rooms", defaultValue: 1 },
+  { name: "Adultos", defaultValue: 2 },
+  { name: "Niños", defaultValue: 1 },
+  { name: "Habitaciones", defaultValue: 1 },
 ];
 
 const Counter = ({ name, defaultValue, onCounterChange }) => {
@@ -26,8 +26,8 @@ const Counter = ({ name, defaultValue, onCounterChange }) => {
       <div className="row y-gap-10 justify-between items-center">
         <div className="col-auto">
           <div className="text-15 lh-12 fw-500">{name}</div>
-          {name === "Children" && (
-            <div className="text-14 lh-12 text-light-1 mt-5">Ages 0 - 17</div>
+          {name === "Niños" && (
+            <div className="text-14 lh-12 text-light-1 mt-5">Edades 0 - 17</div>
           )}
         </div>
         {/* End .col-auto */}
@@ -63,9 +63,9 @@ const Counter = ({ name, defaultValue, onCounterChange }) => {
 
 const GuestSearch = () => {
   const [guestCounts, setGuestCounts] = useState({
-    Adults: 2,
-    Children: 1,
-    Rooms: 1,
+    Adultos: 2,
+    Niños: 1,
+    Habitaciones: 1,
   });
   const handleCounterChange = (name, value) => {
     setGuestCounts((prevState) => ({ ...prevState, [name]: value }));
@@ -78,12 +78,13 @@ const GuestSearch = () => {
         aria-expanded="false"
         data-bs-offset="0,22"
       >
-        <h4 className="text-15 fw-500 ls-2 lh-16">Travellers</h4>
+        <h4 className="text-15 fw-500 ls-2 lh-16">Viajeros</h4>
         <div className="text-15 text-light-1 ls-2 lh-16">
-          <span className="js-count-adult">{guestCounts.Adults}</span> adults -{" "}
-          <span className="js-count-child">{guestCounts.Children}</span>{" "}
-          childeren - <span className="js-count-room">{guestCounts.Rooms}</span>{" "}
-          room
+          <span className="js-count-adult">{guestCounts.Adultos}</span> adultos -{" "}
+          <span className="js-count-child">{guestCounts.Niños}</span>{" "}
+          niños - <span className="js-count-room">{guestCounts.Habitaciones}</span>{" "}
+          habitación
+          habitación
         </div>
       </div>
       {/* End guest */}

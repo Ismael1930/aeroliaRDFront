@@ -45,7 +45,6 @@ const FilterSelect = ({ onClaseChange, onTipoViajeChange, onMaletasChange }) => 
       list: [
         { label: "Ida y Vuelta" },
         { label: "Solo Ida" },
-        { label: "Múltiples Destinos" },
       ],
       onChange: handleReturnValueChange,
     },

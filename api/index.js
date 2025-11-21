@@ -9,13 +9,34 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use(async (config) => {
-  const token = await getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  (config) => {
+    console.log('=== Interceptor Request ===');
+    console.log('URL:', config.url);
+    console.log('Method:', config.method);
+    console.log('BaseURL:', config.baseURL);
+    console.log('Params:', config.params);
+    
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    console.log('Config final:', {
+      url: config.url,
+      baseURL: config.baseURL,
+      method: config.method,
+      params: config.params,
+      headers: config.headers
+    });
+    
+    return config;
+  },
+  (error) => {
+    console.error('Error en interceptor request:', error);
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 // Interceptor para manejar errores globales
 api.interceptors.response.use(

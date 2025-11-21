@@ -8,7 +8,7 @@ import FlyingToLocation from "./FlyingToLocation";
 import { useRouter } from "next/navigation";
 import { buscarVuelos } from "@/api/vueloService";
 
-const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas }) => {
+const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchComplete, variant = 'home' }) => {
   const router = useRouter();
   const [origen, setOrigen] = useState(null);
   const [destino, setDestino] = useState(null);
@@ -19,55 +19,84 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas }) => {
   const [pasajeros, setPasajeros] = useState({ adultos: 2, ninos: 1, habitaciones: 1 });
   const [loading, setLoading] = useState(false);
 
-  const handleBuscar = async () => {
-    if (!origen || !destino || !fechaSalidaInicio) {
-      alert('Por favor completa origen, destino y fecha de salida');
-      return;
-    }
+  // Determinar el texto del botón
+  const getButtonText = () => {
+    if (loading) return 'Buscando...';
+    if (!origen && !destino) return 'Buscar Todos';
+    return 'Buscar';
+  };
 
+  const handleBuscar = async () => {
     try {
       setLoading(true);
-      const filtros = {
-        origen: origen.codigo,
-        destino: destino.codigo,
-        fechaSalida: fechaSalidaInicio,
-        fechaRegreso: fechaRegresoInicio,
-        adultos: pasajeros.adultos,
-        ninos: pasajeros.ninos,
-        habitaciones: pasajeros.habitaciones,
-        tipoViaje: tipoViaje === "Ida y Vuelta" ? "IdaYVuelta" : tipoViaje === "Solo Ida" ? "SoloIda" : "IdaYVuelta",
-        clase: claseSeleccionada,
-      };
+      
+      // Crear filtros opcionales - solo incluir si están definidos
+      const filtros = {};
+      
+      if (origen) filtros.origen = origen.codigo;
+      if (destino) filtros.destino = destino.codigo;
+      if (fechaSalidaInicio) filtros.fechaSalida = fechaSalidaInicio;
+      if (fechaRegresoInicio) filtros.fechaRegreso = fechaRegresoInicio;
+      
+      // Siempre incluir estos campos
+      filtros.adultos = pasajeros.adultos;
+      filtros.ninos = pasajeros.ninos;
+      filtros.habitaciones = pasajeros.habitaciones;
+      filtros.tipoViaje = tipoViaje === "Ida y Vuelta" ? "IdaYVuelta" : tipoViaje === "Solo Ida" ? "SoloIda" : "IdaYVuelta";
+      filtros.clase = claseSeleccionada;
 
       const response = await buscarVuelos(filtros);
+      console.log('Respuesta de búsqueda:', response);
       
-      // El backend puede retornar directamente un array o un objeto con {success, data}
+      // El backend retorna: { success: true, data: [...], count: X }
       let vuelos = [];
-      if (Array.isArray(response)) {
-        vuelos = response;
-      } else if (response.success && Array.isArray(response.data)) {
+      if (response && response.success && response.data) {
         vuelos = response.data;
-      } else if (response.data) {
-        vuelos = Array.isArray(response.data) ? response.data : [response.data];
+      } else if (Array.isArray(response)) {
+        vuelos = response;
       }
 
-      if (vuelos.length > 0) {
-        // Guardar resultados en localStorage para mostrarlos en la página de resultados
-        localStorage.setItem('resultadosVuelos', JSON.stringify(vuelos));
-        router.push('/flight-list-v1');
+      // Guardar resultados en localStorage
+      localStorage.setItem('resultadosVuelos', JSON.stringify(vuelos));
+      localStorage.removeItem('errorBusqueda');
+
+      // Si hay callback, actualizar sin navegar
+      if (onSearchComplete) {
+        onSearchComplete(vuelos);
       } else {
-        alert('No se encontraron vuelos con los criterios seleccionados');
+        // Si no hay callback, navegar a la página de resultados
+        router.push('/flight-list-v1');
       }
+      
     } catch (error) {
       console.error('Error al buscar vuelos:', error);
-      alert('Error al buscar vuelos. Por favor intenta nuevamente.');
+      localStorage.setItem('resultadosVuelos', JSON.stringify([]));
+      localStorage.setItem('errorBusqueda', 'Error al buscar vuelos. Por favor intenta nuevamente.');
+      
+      // Si hay callback, actualizar con lista vacía
+      if (onSearchComplete) {
+        onSearchComplete([]);
+      } else {
+        // Si no hay callback, navegar
+        router.push('/flight-list-v1');
+      }
     } finally {
       setLoading(false);
     }
   };
+  
+  // Estilos diferentes según la variante
+  const containerClass = variant === 'results' 
+    ? "mainSearch -col-5 border-light rounded-4 pr-20 py-20 lg:px-20 lg:pt-5 lg:pb-20 mt-15"
+    : "mainSearch -col-4 bg-white shadow-1 rounded-4 pr-20 py-20 lg:px-20 lg:pt-5 lg:pb-20 mt-15";
+
+  const buttonClass = variant === 'results'
+    ? "mainSearch__submit button -blue-1 py-15 px-35 h-60 col-12 rounded-4 bg-dark-3 text-white"
+    : "mainSearch__submit button -blue-1 py-15 px-35 h-60 col-12 rounded-4 bg-dark-1 text-white";
+
   return (
     <>
-      <div className="mainSearch -col-4 -w-1070 bg-white shadow-1 rounded-4 pr-20 py-20 lg:px-20 lg:pt-5 lg:pb-20 mt-15">
+      <div className={containerClass}>
         <div className="button-grid items-center">
           <FlyingFromLocation onSelect={setOrigen} />
           {/* End Location Flying From */}
@@ -108,12 +137,12 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas }) => {
 
           <div className="button-item">
             <button
-              className="mainSearch__submit button -blue-1 py-15 px-35 h-60 col-12 rounded-4 bg-dark-1 text-white"
+              className={buttonClass}
               onClick={handleBuscar}
               disabled={loading}
             >
               <i className="icon-search text-20 mr-10" />
-              {loading ? 'Buscando...' : 'Buscar'}
+              {getButtonText()}
             </button>
           </div>
           {/* End search button_item */}
