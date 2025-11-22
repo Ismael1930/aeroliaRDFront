@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const MainMenu = ({ style = "" }) => {
   const pathname = usePathname();
+  const { isAuth } = useAuth();
+
+  // Si el usuario está autenticado, no mostrar el menú
+  if (isAuth) {
+    return null;
+  }
 
   return (
     <nav className="menu js-navList">

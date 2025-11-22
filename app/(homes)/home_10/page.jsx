@@ -1,4 +1,4 @@
-import Header10 from "@/components/header/header-10";
+import DynamicHeader from "@/components/header/DynamicHeader";
 import Hero10 from "@/components/hero/hero-10";
 import Link from "next/link";
 import Footer8 from "@/components/footer/footer-8";
@@ -21,7 +21,7 @@ const home_10 = () => {
     <>
       {/* End Page Title */}
 
-      <Header10 />
+      <DynamicHeader />
       {/* End Header 5 */}
 
       <Hero10 />

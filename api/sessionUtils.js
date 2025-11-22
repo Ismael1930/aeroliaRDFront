@@ -42,8 +42,10 @@ export const removeUser = () => {
 };
 
 export const clearSession = () => {
-  removeToken();
-  removeUser();
+  if (typeof window !== 'undefined') {
+    // Limpiar todo el localStorage
+    localStorage.clear();
+  }
 };
 
 export const isAuthenticated = () => {

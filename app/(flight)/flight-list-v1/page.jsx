@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import CallToActions from "@/components/common/CallToActions";
-import Header11 from "@/components/header/header-11";
+import DynamicHeader from "@/components/header/DynamicHeader";
 import DefaultFooter from "@/components/footer/default";
 import FilterSelect from "@/components/hero/hero-10/FilterSelect";
 import MainFilterSearchBox from "@/components/hero/hero-10/MainFilterSearchBox";
@@ -54,7 +54,7 @@ const FlightListPage = () => {
       <div className="header-margin"></div>
       {/* header top margin */}
 
-      <Header11 />
+      <DynamicHeader />
       {/* End Header 1 */}
 
       <section className="pt-40 pb-40">

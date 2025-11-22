@@ -19,12 +19,17 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       if (isAuthenticated()) {
+        // Obtener datos guardados en localStorage
         const userData = getUser();
         setUser(userData);
         setIsAuth(true);
         
-        // Verificar token con el backend
-        await authService.verifyToken();
+        // Verificar token con el backend (sin bloquear si falla)
+        try {
+          await authService.verifyToken();
+        } catch (error) {
+          console.log('Token verification failed, but using cached user data');
+        }
       }
     } catch (error) {
       console.error('Error al verificar autenticación:', error);
@@ -38,9 +43,13 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const data = await authService.login(email, password);
-      setUser(data.user);
+      
+      // Usar los datos del usuario que vienen en la respuesta del login
+      const userData = data.user || { email, rol: 'Cliente' };
+      
+      setUser(userData);
       setIsAuth(true);
-      return data;
+      return { ...data, user: userData };
     } catch (error) {
       throw error;
     }

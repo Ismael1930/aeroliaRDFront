@@ -33,8 +33,13 @@ export const login = async (email, password) => {
     // Guardar token
     if (response.data.token) {
       saveToken(response.data.token);
-      // Guardar datos básicos del usuario
-      saveUser({ email });
+      // Guardar datos del usuario si vienen en la respuesta
+      if (response.data.user) {
+        saveUser(response.data.user);
+      } else {
+        // Guardar al menos el email
+        saveUser({ email });
+      }
     }
     
     return response.data;

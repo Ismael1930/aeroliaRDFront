@@ -46,3 +46,18 @@ export const obtenerVueloPorId = async (id) => {
     throw error;
   }
 };
+
+/**
+ * Obtener asientos disponibles de un vuelo por clase
+ * @param {number} idVuelo - ID del vuelo
+ * @param {string} clase - Clase del vuelo (Economica, PrimeraClase, etc.)
+ */
+export const obtenerAsientosDisponibles = async (idVuelo, clase) => {
+  try {
+    const response = await api.get(`/vuelo/${idVuelo}/asientos/${clase}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error en obtenerAsientosDisponibles:', error);
+    throw error;
+  }
+};

@@ -1,11 +1,26 @@
 'use client'
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage = 10 }) => {
+  const router = useRouter();
+  const { isAuth } = useAuth();
   const [vuelos, setVuelos] = useState([]);
   const [vuelosOriginales, setVuelosOriginales] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleReservar = (vueloId) => {
+    if (!isAuth) {
+      // Guardar URL de retorno y redirigir al login
+      localStorage.setItem('redirectAfterLogin', `/flight-booking?vueloId=${vueloId}`);
+      router.push('/login');
+    } else {
+      // Ir directamente a la página de reserva
+      router.push(`/flight-booking?vueloId=${vueloId}`);
+    }
+  };
 
   useEffect(() => {
     // Cargar los vuelos desde localStorage
@@ -41,7 +56,8 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
           case 'duracion-asc':
             return (a.duracion || 0) - (b.duracion || 0);
           case 'asientos-desc':
-            return (b.asientosDisponibles || 0) - (a.asientosDisponibles || 0);
+            return (b.clasesDisponibles?.reduce((total, c) => total + c.asientosDisponibles, 0) || 0) - 
+                   (a.clasesDisponibles?.reduce((total, c) => total + c.asientosDisponibles, 0) || 0);
           default:
             return 0;
         }
@@ -116,8 +132,8 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
     <>
       {currentVuelos.map((vuelo) => (
         <div className="js-accordion" key={vuelo.id}>
-          <div className="py-30 px-30 bg-white rounded-4 base-tr mt-30">
-            <div className="row y-gap-30 justify-between">
+          <div className="py-20 px-30 bg-white rounded-4 base-tr mt-30">
+            <div className="row y-gap-20 justify-between">
               <div className="col">
                 {/* Vuelo de Ida */}
                 <div className="row y-gap-10 items-center">
@@ -161,6 +177,9 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
                 {/* Vuelo de Regreso - Solo si es Ida y Vuelta */}
                 {vuelo.tipoVuelo === 'IdaYVuelta' && vuelo.fechaRegreso && (
                   <div className="row y-gap-10 items-center pt-30">
+                    <div className="col-12 mb-10">
+                      <div className="text-15 fw-500 text-blue-1">Vuelo de Regreso</div>
+                    </div>
                     <div className="col-sm-auto">
                       <img
                         className="size-40"
@@ -207,22 +226,38 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
                   <div>
                     <div className="text-right md:text-left mb-10">
                       <div className="text-18 lh-16 fw-500">
-                        US${vuelo.precioBase ? vuelo.precioBase.toFixed(2) : '0.00'}
+                        Desde US${vuelo.clasesDisponibles && vuelo.clasesDisponibles.length > 0 
+                          ? Math.min(...vuelo.clasesDisponibles.map(c => c.precio)).toFixed(2)
+                          : '0.00'}
                       </div>
                       <div className="text-15 lh-16 text-light-1">
                         {vuelo.tipoVuelo === 'IdaYVuelta' ? 'Ida y Vuelta' : 'Solo Ida'}
+                        {vuelo.clasesDisponibles && vuelo.clasesDisponibles.length > 0 && (
+                          <span className="ml-5">• {vuelo.clasesDisponibles.map(c => c.clase).join(', ')}</span>
+                        )}
                       </div>
                       <div className="text-15 lh-16 text-light-1">
-                        {vuelo.asientosDisponibles} asientos
+                        {vuelo.clasesDisponibles && vuelo.clasesDisponibles.length > 0 
+                          ? `${vuelo.clasesDisponibles.reduce((total, c) => total + c.asientosDisponibles, 0)} asientos`
+                          : '0 asientos'}
                       </div>
                     </div>
-                    <div className="accordion__button">
+                    <div className="mt-10">
                       <button
-                        className="button -dark-1 px-30 h-50 bg-blue-1 text-white"
+                        className="button -dark-1 px-30 h-40 bg-yellow-1 text-dark-1 w-100"
+                        onClick={() => handleReservar(vuelo.id)}
+                      >
+                        <i className="icon-ticket text-16 mr-10" />
+                        Reservar
+                      </button>
+                    </div>
+                    <div className="accordion__button mt-10">
+                      <button
+                        className="button -dark-1 px-30 h-40 bg-blue-1 text-white w-100"
                         data-bs-toggle="collapse"
                         data-bs-target={`#vuelo-${vuelo.id}`}
                       >
-                        Ver Detalles <div className="icon-arrow-top-right ml-15" />
+                        Ver Detalles <div className="icon-arrow-top-right ml-10" />
                       </button>
                     </div>
                   </div>
@@ -306,12 +341,16 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
                     </div>
                     <div className="col-auto text-right md:text-left">
                       <div className="text-14 text-light-1">
-                        {vuelo.clasesDisponibles ? vuelo.clasesDisponibles.join(', ') : 'Económica'}
+                        {vuelo.clasesDisponibles && vuelo.clasesDisponibles.length > 0 
+                          ? vuelo.clasesDisponibles.map(c => c.clase).join(', ') 
+                          : 'Económica'}
                       </div>
                       <div className="text-14 mt-15 md:mt-5">
                         {vuelo.origenCiudad} → {vuelo.destinoCiudad}
                         <br />
-                        {vuelo.asientosDisponibles} asientos disponibles
+                        {vuelo.clasesDisponibles && vuelo.clasesDisponibles.length > 0 
+                          ? `${vuelo.clasesDisponibles.reduce((total, c) => total + c.asientosDisponibles, 0)} asientos disponibles`
+                          : '0 asientos disponibles'}
                       </div>
                     </div>
                   </div>
@@ -389,17 +428,21 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
                             </div>
                           </div>
                         </div>
+                    </div>
+                    <div className="col-auto text-right md:text-left">
+                      <div className="text-14 text-light-1">
+                        {vuelo.clasesDisponibles && vuelo.clasesDisponibles.length > 0 
+                          ? vuelo.clasesDisponibles.map(c => c.clase).join(', ') 
+                          : 'Económica'}
                       </div>
-                      <div className="col-auto text-right md:text-left">
-                        <div className="text-14 text-light-1">
-                          {vuelo.clasesDisponibles ? vuelo.clasesDisponibles.join(', ') : 'Económica'}
-                        </div>
-                        <div className="text-14 mt-15 md:mt-5">
-                          {vuelo.destinoCiudad} → {vuelo.origenCiudad}
-                          <br />
-                          {vuelo.asientosDisponibles} asientos disponibles
-                        </div>
+                      <div className="text-14 mt-15 md:mt-5">
+                        {vuelo.destinoCiudad} → {vuelo.origenCiudad}
+                        <br />
+                        {vuelo.clasesDisponibles && vuelo.clasesDisponibles.length > 0 
+                          ? `${vuelo.clasesDisponibles.reduce((total, c) => total + c.asientosDisponibles, 0)} asientos disponibles`
+                          : '0 asientos disponibles'}
                       </div>
+                    </div>
                     </div>
                   </div>
                 </div>

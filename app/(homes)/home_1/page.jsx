@@ -1,7 +1,7 @@
 import AddBanner from "@/components/add-banner/AddBanner";
 import PopularDestinations from "@/components/destinations/PopularDestinations";
 import DefaultFooter from "@/components/footer/default";
-import Header1 from "@/components/header/header-1";
+import DynamicHeader from "@/components/header/DynamicHeader";
 import Hero1 from "@/components/hero/hero-1";
 import BlockGuide from "@/components/block/BlockGuide";
 import Blog from "@/components/blog/Blog3";
@@ -22,7 +22,7 @@ const Home_1 = () => {
     <>
       {/* End Page Title */}
 
-      <Header1 />
+      <DynamicHeader />
       {/* End Header 1 */}
 
       <Hero1 />

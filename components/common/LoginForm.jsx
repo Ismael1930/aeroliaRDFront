@@ -29,8 +29,25 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
-      router.push('/dashboard/db-dashboard'); // Redirigir al dashboard después del login
+      const result = await login(formData.email, formData.password);
+      
+      // Verificar el rol del usuario
+      const userRole = result.user?.rol || result.user?.role;
+      
+      // Si es admin, redirigir al dashboard
+      if (userRole === 'Admin' || userRole === 'admin') {
+        router.push('/dashboard/db-dashboard');
+        return;
+      }
+      
+      // Si es cliente, verificar si hay una URL de retorno guardada
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      if (redirectUrl) {
+        localStorage.removeItem('redirectAfterLogin');
+        router.push(redirectUrl);
+      } else {
+        router.push('/'); // Redirigir al home
+      }
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {
@@ -101,7 +118,7 @@ const LoginForm = () => {
           disabled={loading}
           className="button py-20 -dark-1 bg-blue-1 text-white w-100"
         >
-          {loading ? 'Signing In...' : 'Sign In'} 
+          {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'} 
           {!loading && <div className="icon-arrow-top-right ml-15" />}
         </button>
       </div>

@@ -51,12 +51,20 @@ const SignUpForm = () => {
         formData.password
       );
       
-      setSuccess(result.message || 'Usuario registrado exitosamente');
+      setSuccess(result.message || 'Usuario registrado exitosamente. Redirigiendo...');
       
-      // Redirigir al login después de 2 segundos
+      // Verificar si hay una URL de retorno guardada
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      
+      // Redirigir al login después de 1.5 segundos
       setTimeout(() => {
-        router.push('/login');
-      }, 2000);
+        if (redirectUrl) {
+          // Mantener el redirect para después del login
+          router.push('/login');
+        } else {
+          router.push('/login');
+        }
+      }, 1500);
       
     } catch (err) {
       // Manejar errores del backend
