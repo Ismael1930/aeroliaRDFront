@@ -33,8 +33,8 @@ const DynamicHeader = () => {
     }
   }, [isAuth, user, loading, pathname, router]);
 
-  // Verificar si estamos en home_10
-  const isHome10 = pathname === '/home_10';
+  // Verificar si estamos en home
+  const isHome10 = pathname === '/home';
 
   // Mostrar loading o header público mientras se verifica la autenticación
   if (loading) {

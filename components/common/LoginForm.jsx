@@ -46,7 +46,7 @@ const LoginForm = () => {
         localStorage.removeItem('redirectAfterLogin');
         router.push(redirectUrl);
       } else {
-        router.push('/home_10'); // Redirigir al home del cliente
+        router.push('/home'); // Redirigir al home del cliente
       }
     } catch (err) {
       console.error('Login error:', err);

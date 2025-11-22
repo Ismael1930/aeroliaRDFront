@@ -815,7 +815,7 @@ const FlightBookingPage = () => {
           }}
           onClick={() => {
             setMostrarModal(false);
-            router.push('/home_10');
+            router.push('/home');
           }}
         >
           <div 
@@ -958,7 +958,7 @@ const FlightBookingPage = () => {
                   className="button -dark-1 py-15 px-20 h-50 col-12 rounded-4 bg-blue-1 text-white"
                   onClick={() => {
                     setMostrarModal(false);
-                    router.push('/home_10');
+                    router.push('/home');
                   }}
                 >
                   Ir al Inicio

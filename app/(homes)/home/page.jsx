@@ -16,7 +16,7 @@ export const metadata = {
   description: "GoTrip - Plantilla de Viajes y Tours",
 };
 
-const home_10 = () => {
+const home = () => {
   return (
     <>
       {/* End Page Title */}
@@ -202,4 +202,4 @@ const home_10 = () => {
   );
 };
 
-export default home_10;
+export default home;

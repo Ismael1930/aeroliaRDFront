@@ -33,7 +33,7 @@ const HeaderClienteHome = () => {
     if (typeof window !== 'undefined') {
       localStorage.clear();
     }
-    router.push('/home_10');
+    router.push('/home');
   };
 
   return (

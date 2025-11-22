@@ -37,7 +37,7 @@ export const homeItems = [
   },
   {
     name: "Home 10",
-    routePath: "/home_10",
+    routePath: "/home",
   },
 ];
 export const blogItems = [
