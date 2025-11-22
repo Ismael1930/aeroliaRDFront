@@ -33,13 +33,17 @@ export const login = async (email, password) => {
     // Guardar token
     if (response.data.token) {
       saveToken(response.data.token);
-      // Guardar datos del usuario si vienen en la respuesta
-      if (response.data.user) {
-        saveUser(response.data.user);
-      } else {
-        // Guardar al menos el email
-        saveUser({ email });
-      }
+      
+      // Construir objeto de usuario con la nueva estructura del backend
+      const userData = {
+        email: response.data.email,
+        userName: response.data.userName,
+        userId: response.data.userId,
+        rol: response.data.roles && response.data.roles.length > 0 ? response.data.roles[0] : 'Cliente',
+        roles: response.data.roles || ['Cliente']
+      };
+      
+      saveUser(userData);
     }
     
     return response.data;

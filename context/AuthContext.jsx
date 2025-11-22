@@ -21,6 +21,16 @@ export const AuthProvider = ({ children }) => {
       if (isAuthenticated()) {
         // Obtener datos guardados en localStorage
         const userData = getUser();
+        
+        // Verificar que los datos sean válidos
+        if (!userData || !userData.email) {
+          // Si los datos no son válidos, limpiar sesión
+          setUser(null);
+          setIsAuth(false);
+          setLoading(false);
+          return;
+        }
+        
         setUser(userData);
         setIsAuth(true);
         
@@ -28,7 +38,12 @@ export const AuthProvider = ({ children }) => {
         try {
           await authService.verifyToken();
         } catch (error) {
-          console.log('Token verification failed, but using cached user data');
+          console.log('Token verification failed:', error);
+          // Si el token es inválido, limpiar sesión
+          if (error.response?.status === 401) {
+            setUser(null);
+            setIsAuth(false);
+          }
         }
       }
     } catch (error) {
@@ -44,8 +59,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await authService.login(email, password);
       
-      // Usar los datos del usuario que vienen en la respuesta del login
-      const userData = data.user || { email, rol: 'Cliente' };
+      // Construir objeto de usuario con la nueva estructura
+      const userData = {
+        email: data.email,
+        userName: data.userName,
+        userId: data.userId,
+        rol: data.roles && data.roles.length > 0 ? data.roles[0] : 'Cliente',
+        roles: data.roles || ['Cliente']
+      };
       
       setUser(userData);
       setIsAuth(true);

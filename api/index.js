@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken } from "./sessionUtils";
+import { getToken, clearSession } from "./sessionUtils";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
@@ -11,25 +11,10 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    console.log('=== Interceptor Request ===');
-    console.log('URL:', config.url);
-    console.log('Method:', config.method);
-    console.log('BaseURL:', config.baseURL);
-    console.log('Params:', config.params);
-    
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    console.log('Config final:', {
-      url: config.url,
-      baseURL: config.baseURL,
-      method: config.method,
-      params: config.params,
-      headers: config.headers
-    });
-    
     return config;
   },
   (error) => {
@@ -47,9 +32,14 @@ api.interceptors.response.use(
       const { status } = error.response;
       
       if (status === 401) {
-        // Token inválido o expirado
-        console.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-        // Aquí podrías redirigir al login o limpiar la sesión
+        // Token inválido, expirado o cambiado - hacer logout automático
+        console.error('Token inválido o expirado. Cerrando sesión...');
+        clearSession();
+        
+        // Redirigir al login solo si estamos en el navegador
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       } else if (status === 403) {
         console.error('No tienes permisos para realizar esta acción.');
       } else if (status === 404) {

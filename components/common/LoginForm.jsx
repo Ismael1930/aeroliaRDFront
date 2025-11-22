@@ -31,11 +31,11 @@ const LoginForm = () => {
     try {
       const result = await login(formData.email, formData.password);
       
-      // Verificar el rol del usuario
-      const userRole = result.user?.rol || result.user?.role;
+      // Obtener el rol del usuario desde el objeto user construido
+      const userRole = result.user?.rol;
       
       // Si es admin, redirigir al dashboard
-      if (userRole === 'Admin' || userRole === 'admin') {
+      if (userRole === 'Admin') {
         router.push('/dashboard/db-dashboard');
         return;
       }
@@ -46,9 +46,10 @@ const LoginForm = () => {
         localStorage.removeItem('redirectAfterLogin');
         router.push(redirectUrl);
       } else {
-        router.push('/'); // Redirigir al home
+        router.push('/home_10'); // Redirigir al home del cliente
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {
       setLoading(false);
