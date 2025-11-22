@@ -4,12 +4,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { isActiveLink } from "@/utils/linkActiveChecker";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const Sidebar = () => {
 const pathname = usePathname()
-const { user } = useAuth()
+const router = useRouter()
+const { user, logout } = useAuth()
 const isAdmin = user?.rol === 'Admin' || user?.role === 'admin'
+
+console.log('Sidebar - User:', user);
+console.log('Sidebar - isAdmin:', isAdmin);
+
+  const handleLogout = async () => {
+    await logout();
+    // Limpiar completamente el localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+    }
+    router.push('/login');
+  };
 
   const sidebarContent = [
     {
@@ -92,25 +105,44 @@ const isAdmin = user?.rol === 'Admin' || user?.role === 'admin'
     <div className="sidebar -dashboard">
       {menuItems.map((item) => (
         <div className="sidebar__item" key={item.id}>
-          <div
-            className={`${
-              isActiveLink(item.routePath, pathname) ? "-is-active" : ""
-            } sidebar__button `}
-          >
-            <Link
-              href={item.routePath}
-              className="d-flex items-center text-15 lh-1 fw-500"
+          {item.name === "Logout" ? (
+            <div className="sidebar__button">
+              <button
+                onClick={handleLogout}
+                className="d-flex items-center text-15 lh-1 fw-500 w-100 border-0 bg-transparent"
+                style={{ cursor: 'pointer', textAlign: 'left' }}
+              >
+                <Image
+                  width={20}
+                  height={20}
+                  src={item.icon}
+                  alt="image"
+                  className="mr-15"
+                />
+                {item.name}
+              </button>
+            </div>
+          ) : (
+            <div
+              className={`${
+                isActiveLink(item.routePath, pathname) ? "-is-active" : ""
+              } sidebar__button `}
             >
-              <Image
-                width={20}
-                height={20}
-                src={item.icon}
-                alt="image"
-                className="mr-15"
-              />
-              {item.name}
-            </Link>
-          </div>
+              <Link
+                href={item.routePath}
+                className="d-flex items-center text-15 lh-1 fw-500"
+              >
+                <Image
+                  width={20}
+                  height={20}
+                  src={item.icon}
+                  alt="image"
+                  className="mr-15"
+                />
+                {item.name}
+              </Link>
+            </div>
+          )}
         </div>
       ))}
     </div>

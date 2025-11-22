@@ -22,6 +22,9 @@ const GestionVuelos = () => {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [vueloSeleccionado, setVueloSeleccionado] = useState(null);
   const [filtro, setFiltro] = useState('');
+  const [error, setError] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [itemsPorPagina] = useState(10);
 
   const [formulario, setFormulario] = useState({
     numeroVuelo: '',
@@ -44,17 +47,48 @@ const GestionVuelos = () => {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const [vuelosData, aeropuertosData, aeronavesData] = await Promise.all([
-        obtenerTodosLosVuelos(),
-        obtenerAeropuertos(),
-        obtenerAeronavesDisponibles()
-      ]);
-      setVuelos(vuelosData);
-      setAeropuertos(aeropuertosData);
-      setAeronaves(aeronavesData);
+      setError(null);
+      
+      // Cargar datos con manejo individual de errores
+      let vuelosData = [];
+      let aeropuertosData = [];
+      let aeronavesData = [];
+
+      try {
+        const response = await obtenerTodosLosVuelos();
+        console.log('Respuesta vuelos:', response);
+        // El backend puede devolver {data: [...]} o directamente [...]
+        vuelosData = Array.isArray(response) ? response : (response.data || response.vuelos || []);
+      } catch (err) {
+        console.error('Error al cargar vuelos:', err);
+        if (err.response?.status === 403) {
+          setError('No tienes permisos para ver los vuelos. Contacta al administrador.');
+        }
+      }
+
+      try {
+        const response = await obtenerAeropuertos();
+        console.log('Respuesta aeropuertos:', response);
+        aeropuertosData = Array.isArray(response) ? response : (response.data || response.aeropuertos || []);
+      } catch (err) {
+        console.error('Error al cargar aeropuertos:', err);
+      }
+
+      try {
+        const response = await obtenerAeronavesDisponibles();
+        console.log('Respuesta aeronaves:', response);
+        aeronavesData = Array.isArray(response) ? response : (response.data || response.aeronaves || []);
+      } catch (err) {
+        console.error('Error al cargar aeronaves:', err);
+        // No es crítico si no hay aeronaves
+      }
+
+      setVuelos(Array.isArray(vuelosData) ? vuelosData : []);
+      setAeropuertos(Array.isArray(aeropuertosData) ? aeropuertosData : []);
+      setAeronaves(Array.isArray(aeronavesData) ? aeronavesData : []);
     } catch (error) {
-      console.error('Error al cargar datos:', error);
-      alert('Error al cargar los datos');
+      console.error('Error general al cargar datos:', error);
+      setError('Error al cargar los datos. Por favor, intenta nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -101,11 +135,36 @@ const GestionVuelos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convertir y preparar los datos para el backend
+      const datosVuelo = {
+        ...formulario,
+        // Convertir ID de aeronave a número (o null si está vacío)
+        idAeronave: formulario.idAeronave ? parseInt(formulario.idAeronave) : null,
+        // Convertir precio base a número
+        precioBase: parseFloat(formulario.precioBase),
+        // Convertir duración a número si existe
+        duracion: formulario.duracion ? parseFloat(formulario.duracion) : null,
+        // Convertir horas al formato TimeSpan de .NET (HH:mm:ss)
+        horaSalida: formulario.horaSalida.length === 5 
+          ? `${formulario.horaSalida}:00` 
+          : formulario.horaSalida,
+        horaLlegada: formulario.horaLlegada.length === 5 
+          ? `${formulario.horaLlegada}:00` 
+          : formulario.horaLlegada,
+      };
+
+      // Si es edición, asegurar que el ID sea un número
+      if (modoEdicion && datosVuelo.id) {
+        datosVuelo.id = parseInt(datosVuelo.id);
+      }
+
+      console.log('Datos enviados al backend:', datosVuelo);
+
       if (modoEdicion) {
-        await actualizarVuelo(formulario);
+        await actualizarVuelo(datosVuelo);
         alert('Vuelo actualizado exitosamente');
       } else {
-        await crearVuelo(formulario);
+        await crearVuelo(datosVuelo);
         alert('Vuelo creado exitosamente');
       }
       setMostrarModal(false);
@@ -134,6 +193,16 @@ const GestionVuelos = () => {
     v.origen?.toLowerCase().includes(filtro.toLowerCase()) ||
     v.destino?.toLowerCase().includes(filtro.toLowerCase())
   );
+
+  // Cálculos de paginación
+  const indexUltimo = paginaActual * itemsPorPagina;
+  const indexPrimero = indexUltimo - itemsPorPagina;
+  const vuelosActuales = vuelosFiltrados.slice(indexPrimero, indexUltimo);
+  const totalPaginas = Math.ceil(vuelosFiltrados.length / itemsPorPagina);
+
+  const cambiarPagina = (numeroPagina) => {
+    setPaginaActual(numeroPagina);
+  };
 
   return (
     <>
@@ -187,6 +256,16 @@ const GestionVuelos = () => {
               </div>
             </div>
 
+            {/* Mensaje de error */}
+            {error && (
+              <div className="py-20 px-30 rounded-4 bg-red-1-05 mb-30">
+                <div className="d-flex items-center">
+                  <i className="icon-alert-circle text-24 text-red-1 mr-10"></i>
+                  <div className="text-15 text-red-1">{error}</div>
+                </div>
+              </div>
+            )}
+
             {/* Tabla de Vuelos */}
             <div className="py-30 px-30 rounded-4 bg-white shadow-3">
               {loading ? (
@@ -210,7 +289,7 @@ const GestionVuelos = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {vuelosFiltrados.map((vuelo) => (
+                      {vuelosActuales.map((vuelo) => (
                         <tr key={vuelo.id}>
                           <td className="fw-500">{vuelo.numeroVuelo}</td>
                           <td>
@@ -263,6 +342,77 @@ const GestionVuelos = () => {
                       No se encontraron vuelos
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Paginación */}
+              {!loading && vuelosFiltrados.length > 0 && (
+                <div className="pt-30 border-top-light">
+                  <div className="row x-gap-10 y-gap-20 justify-between items-center">
+                    <div className="col-auto">
+                      <div className="text-14 text-light-1">
+                        Mostrando {indexPrimero + 1} a {Math.min(indexUltimo, vuelosFiltrados.length)} de {vuelosFiltrados.length} vuelos
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <div className="row x-gap-10 y-gap-10 items-center">
+                        <div className="col-auto">
+                          <button
+                            className="button -blue-1 size-40 rounded-full border-light"
+                            onClick={() => cambiarPagina(paginaActual - 1)}
+                            disabled={paginaActual === 1}
+                            style={{ opacity: paginaActual === 1 ? 0.5 : 1 }}
+                          >
+                            <i className="icon-chevron-left text-12"></i>
+                          </button>
+                        </div>
+                        {[...Array(totalPaginas)].map((_, index) => {
+                          const numeroPagina = index + 1;
+                          // Mostrar solo páginas cercanas a la actual
+                          if (
+                            numeroPagina === 1 ||
+                            numeroPagina === totalPaginas ||
+                            (numeroPagina >= paginaActual - 1 && numeroPagina <= paginaActual + 1)
+                          ) {
+                            return (
+                              <div className="col-auto" key={numeroPagina}>
+                                <button
+                                  className={`button size-40 rounded-full ${
+                                    paginaActual === numeroPagina
+                                      ? 'bg-dark-1 text-white'
+                                      : 'border-light bg-white text-dark-1'
+                                  }`}
+                                  onClick={() => cambiarPagina(numeroPagina)}
+                                >
+                                  {numeroPagina}
+                                </button>
+                              </div>
+                            );
+                          } else if (
+                            numeroPagina === paginaActual - 2 ||
+                            numeroPagina === paginaActual + 2
+                          ) {
+                            return (
+                              <div className="col-auto" key={numeroPagina}>
+                                <div className="text-14 text-light-1">...</div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })}
+                        <div className="col-auto">
+                          <button
+                            className="button -blue-1 size-40 rounded-full border-light"
+                            onClick={() => cambiarPagina(paginaActual + 1)}
+                            disabled={paginaActual === totalPaginas}
+                            style={{ opacity: paginaActual === totalPaginas ? 0.5 : 1 }}
+                          >
+                            <i className="icon-chevron-right text-12"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
