@@ -34,6 +34,10 @@ const FlightBookingPage = () => {
     cvv: ''
   });
 
+  // Estado del modal de comprobante
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [datosReserva, setDatosReserva] = useState(null);
+
   useEffect(() => {
     // Verificar autenticación
     if (!authLoading && !isAuth) {
@@ -217,8 +221,25 @@ const FlightBookingPage = () => {
 
       const resultados = await Promise.all(reservasPromises);
       
-      alert(`¡Pago procesado exitosamente!\nReserva${pasajeros.length > 1 ? 's' : ''} confirmada${pasajeros.length > 1 ? 's' : ''}`);
-      router.push('/home_10');
+      // Generar código de reserva (simulado)
+      const codigoReserva = 'RES' + Date.now().toString().slice(-8);
+      
+      // Preparar datos para el modal
+      setDatosReserva({
+        codigoReserva,
+        fecha: new Date().toLocaleDateString('es-ES', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        pasajeros,
+        precioTotal: calcularPrecioTotal()
+      });
+      
+      // Mostrar modal
+      setMostrarModal(true);
       
     } catch (error) {
       console.error('Error al crear reserva:', error);
@@ -775,6 +796,178 @@ const FlightBookingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Modal de Comprobante */}
+      {mostrarModal && datosReserva && (
+        <div 
+          className="modal-backdrop" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}
+          onClick={() => {
+            setMostrarModal(false);
+            router.push('/home_10');
+          }}
+        >
+          <div 
+            className="modal-content bg-white rounded-4 shadow-4"
+            style={{
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              padding: '40px',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header del modal */}
+            <div className="text-center mb-30">
+              <div className="size-80 rounded-full bg-green-1 flex-center mx-auto mb-20">
+                <i className="icon-check text-40 text-white"></i>
+              </div>
+              <h2 className="text-30 fw-600 mb-10">¡Reserva Confirmada!</h2>
+              <p className="text-15 text-light-1">Su pago ha sido procesado exitosamente</p>
+            </div>
+
+            {/* Código de reserva */}
+            <div className="bg-blue-1-05 rounded-4 px-30 py-20 mb-30 text-center">
+              <div className="text-14 text-light-1 mb-5">Código de Reserva</div>
+              <div className="text-30 fw-600 text-blue-1">{datosReserva.codigoReserva}</div>
+            </div>
+
+            {/* Detalles del vuelo */}
+            <div className="border-top-light pt-20 mb-20">
+              <h5 className="text-18 fw-600 mb-15">Detalles del Vuelo</h5>
+              
+              <div className="row y-gap-10 mb-20">
+                <div className="col-6">
+                  <div className="text-14 text-light-1">Vuelo</div>
+                  <div className="text-15 fw-500">{vuelo.numeroVuelo}</div>
+                </div>
+                <div className="col-6">
+                  <div className="text-14 text-light-1">Clase</div>
+                  <div className="text-15 fw-500">{claseSeleccionada.clase}</div>
+                </div>
+                <div className="col-6">
+                  <div className="text-14 text-light-1">Fecha</div>
+                  <div className="text-15 fw-500">{formatearFecha(vuelo.fecha)}</div>
+                </div>
+                <div className="col-6">
+                  <div className="text-14 text-light-1">Hora de Salida</div>
+                  <div className="text-15 fw-500">{formatearHora(vuelo.horaSalida)}</div>
+                </div>
+                <div className="col-12">
+                  <div className="d-flex items-center justify-between bg-light-2 rounded-4 px-20 py-15">
+                    <div>
+                      <div className="text-15 fw-500">{vuelo.origenCodigo}</div>
+                      <div className="text-14 text-light-1">{vuelo.origen}</div>
+                    </div>
+                    <div className="text-center">
+                      <i className="icon-arrow-right text-20 text-blue-1"></i>
+                    </div>
+                    <div className="text-end">
+                      <div className="text-15 fw-500">{vuelo.destinoCodigo}</div>
+                      <div className="text-14 text-light-1">{vuelo.destino}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pasajeros */}
+            <div className="border-top-light pt-20 mb-20">
+              <h5 className="text-18 fw-600 mb-15">Pasajeros</h5>
+              {datosReserva.pasajeros.map((pasajero, index) => (
+                <div key={index} className="d-flex justify-between items-center py-10 border-bottom-light">
+                  <div>
+                    <div className="text-15 fw-500">{pasajero.nombre} {pasajero.apellido}</div>
+                    <div className="text-14 text-light-1">{pasajero.tipo}</div>
+                  </div>
+                  <div className="text-end">
+                    <div className="text-15 fw-500 text-blue-1">Asiento {pasajero.numeroAsiento}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Resumen de precio */}
+            <div className="border-top-light pt-20 mb-30">
+              <h5 className="text-18 fw-600 mb-15">Resumen de Pago</h5>
+              
+              <div className="d-flex justify-between py-10">
+                <div className="text-15">Precio Base × {adultos + ninos}</div>
+                <div className="text-15 fw-500">US${(vuelo.precioBase * (adultos + ninos)).toFixed(2)}</div>
+              </div>
+              
+              {calcularRecargoPorClase() > 0 && (
+                <div className="d-flex justify-between py-10">
+                  <div className="text-15">Recargo {claseSeleccionada.clase}</div>
+                  <div className="text-15 fw-500 text-blue-1">+US${(calcularRecargoPorClase() * (adultos + ninos)).toFixed(2)}</div>
+                </div>
+              )}
+              
+              {numMaletas > 0 && (
+                <div className="d-flex justify-between py-10">
+                  <div className="text-15">Maletas × {numMaletas}</div>
+                  <div className="text-15 fw-500">US${(numMaletas * 25).toFixed(2)}</div>
+                </div>
+              )}
+              
+              <div className="border-top-light my-15"></div>
+              
+              <div className="d-flex justify-between items-center">
+                <div className="text-18 fw-600">Total Pagado</div>
+                <div className="text-24 fw-600 text-blue-1">US${datosReserva.precioTotal.toFixed(2)}</div>
+              </div>
+            </div>
+
+            {/* Información adicional */}
+            <div className="bg-light-2 rounded-4 px-20 py-15 mb-20">
+              <div className="text-14 text-light-1 mb-5">
+                <i className="icon-info-circle mr-5"></i>
+                Un correo de confirmación ha sido enviado a {user?.email}
+              </div>
+              <div className="text-14 text-light-1">
+                Fecha de emisión: {datosReserva.fecha}
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="row x-gap-10">
+              <div className="col-6">
+                <button 
+                  className="button -outline-blue-1 py-15 px-20 h-50 col-12 rounded-4"
+                  onClick={() => window.print()}
+                >
+                  <i className="icon-printer mr-10"></i>
+                  Imprimir
+                </button>
+              </div>
+              <div className="col-6">
+                <button 
+                  className="button -dark-1 py-15 px-20 h-50 col-12 rounded-4 bg-blue-1 text-white"
+                  onClick={() => {
+                    setMostrarModal(false);
+                    router.push('/home_10');
+                  }}
+                >
+                  Ir al Inicio
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <CallToActions />
       <DefaultFooter />
