@@ -78,3 +78,31 @@ export const cancelarReserva = async (codigo) => {
     throw error;
   }
 };
+
+/**
+ * Obtener todas las reservas
+ */
+export const getAll = async () => {
+  try {
+    // Endpoint proporcionado por el backend: GET /api/Reserva
+    const response = await api.get('/Reserva');
+    // API responde: { success: true, data: [ ... ], count: N }
+    const body = response.data || {};
+    const items = Array.isArray(body.data) ? body.data : (body.data || []);
+    const count = typeof body.count === 'number' ? body.count : (Array.isArray(body.data) ? body.data.length : 0);
+    return { items, count, raw: body };
+  } catch (error) {
+    console.error('Error en getAll reservas:', error);
+    throw error;
+  }
+};
+
+// Export default para compatibilidad con imports por defecto
+export default {
+  getAll,
+  crearReserva,
+  obtenerReservaPorCodigo,
+  obtenerReservasCliente,
+  modificarReserva,
+  cancelarReserva,
+};

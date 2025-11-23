@@ -43,3 +43,24 @@ export const procesarPago = async (pagoData) => {
     throw error;
   }
 };
+
+/**
+ * Obtener todas las facturas
+ */
+export const getAll = async () => {
+  try {
+    const response = await api.get('/factura');
+    return response.data;
+  } catch (error) {
+    console.error('Error en getAll facturas:', error);
+    throw error;
+  }
+};
+
+// Export default para compatibilidad con imports por defecto
+export default {
+  getAll,
+  obtenerFacturaPorCodigo,
+  obtenerFacturaPorReserva,
+  procesarPago,
+};

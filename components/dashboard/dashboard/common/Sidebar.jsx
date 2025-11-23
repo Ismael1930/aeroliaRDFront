@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaPlaneDeparture, FaPlane, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
+import { FaPlaneDeparture, FaPlane, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaTachometerAlt, FaReceipt, FaClipboardList } from 'react-icons/fa';
 import { useAuth } from "@/context/AuthContext";
 import { isActiveLink } from "@/utils/linkActiveChecker";
 import { usePathname, useRouter } from "next/navigation";
@@ -59,6 +59,20 @@ console.log('Sidebar - isAdmin:', isAdmin);
       icon: <FaUserFriends size={20} className="mr-15" />,
       name: "Clientes",
       routePath: "/dashboard/db-clientes",
+      adminOnly: true,
+    },
+    {
+      id: 14,
+      icon: <FaReceipt size={20} className="mr-15" />,
+      name: "Facturas",
+      routePath: "/dashboard/db-facturas",
+      adminOnly: true,
+    },
+    {
+      id: 15,
+      icon: <FaClipboardList size={20} className="mr-15" />,
+      name: "Reservas",
+      routePath: "/dashboard/db-reservas",
       adminOnly: true,
     },
      {
