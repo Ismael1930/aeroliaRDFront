@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { FaPlaneDeparture, FaPlane, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
 import { useAuth } from "@/context/AuthContext";
 import { isActiveLink } from "@/utils/linkActiveChecker";
 import { usePathname, useRouter } from "next/navigation";
@@ -27,48 +28,48 @@ console.log('Sidebar - isAdmin:', isAdmin);
   const sidebarContent = [
     {
       id: 1,
-      icon: "/img/dashboard/sidebar/compass.svg",
+      icon: <FaTachometerAlt size={20} className="mr-15" />,
       name: "Dashboard",
       routePath: "/dashboard/db-dashboard",
     },
     // Sección de administración
     {
       id: 10,
-      icon: "/img/dashboard/sidebar/compass.svg",
+      icon: <FaPlaneDeparture size={20} className="mr-15" />,
       name: "Gestión de Vuelos",
       routePath: "/dashboard/db-vuelos",
-      adminOnly: true
+      adminOnly: true,
     },
     {
       id: 11,
-      icon: "/img/dashboard/sidebar/compass.svg",
+      icon: <FaPlane size={20} className="mr-15" />,
       name: "Aeronaves",
       routePath: "/dashboard/db-aeronaves",
-      adminOnly: true
+      adminOnly: true,
     },
     {
       id: 12,
-      icon: "/img/dashboard/sidebar/compass.svg",
+      icon: <FaUsers size={20} className="mr-15" />,
       name: "Tripulación",
       routePath: "/dashboard/db-tripulacion",
-      adminOnly: true
+      adminOnly: true,
     },
     {
       id: 13,
-      icon: "/img/dashboard/sidebar/compass.svg",
+      icon: <FaUserFriends size={20} className="mr-15" />,
       name: "Clientes",
       routePath: "/dashboard/db-clientes",
-      adminOnly: true
+      adminOnly: true,
     },
      {
       id: 4,
-      icon: "/img/dashboard/sidebar/gear.svg",
+      icon: <FaCog size={20} className="mr-15" />,
       name: "Settings",
       routePath: "/dashboard/db-settings",
     },
     {
       id: 5,
-      icon: "/img/dashboard/sidebar/log-out.svg",
+      icon: <FaSignOutAlt size={20} className="mr-15" />,
       name: "Logout",
       routePath: "/login",
     },
@@ -84,7 +85,7 @@ console.log('Sidebar - isAdmin:', isAdmin);
 
   return (
     <div className="sidebar -dashboard">
-      {menuItems.map((item) => (
+          {menuItems.map((item) => (
         <div className="sidebar__item" key={item.id}>
           {item.name === "Logout" ? (
             <div className="sidebar__button">
@@ -93,14 +94,13 @@ console.log('Sidebar - isAdmin:', isAdmin);
                 className="d-flex items-center text-15 lh-1 fw-500 w-100 border-0 bg-transparent"
                 style={{ cursor: 'pointer', textAlign: 'left' }}
               >
-                <Image
-                  width={20}
-                  height={20}
-                  src={item.icon}
-                  alt="image"
-                  className="mr-15"
-                />
-                {item.name}
+                    {/* icon can be a React node (from react-icons) or a string path for Image */}
+                    {typeof item.icon === 'string' ? (
+                      <Image width={20} height={20} src={item.icon} alt="image" className="mr-15" />
+                    ) : (
+                      <span className="mr-15">{item.icon}</span>
+                    )}
+                    {item.name}
               </button>
             </div>
           ) : (
@@ -113,14 +113,12 @@ console.log('Sidebar - isAdmin:', isAdmin);
                 href={item.routePath}
                 className="d-flex items-center text-15 lh-1 fw-500"
               >
-                <Image
-                  width={20}
-                  height={20}
-                  src={item.icon}
-                  alt="image"
-                  className="mr-15"
-                />
-                {item.name}
+                    {typeof item.icon === 'string' ? (
+                      <Image width={20} height={20} src={item.icon} alt="image" className="mr-15" />
+                    ) : (
+                      <span className="mr-15">{item.icon}</span>
+                    )}
+                    {item.name}
               </Link>
             </div>
           )}
