@@ -87,13 +87,11 @@ const HeaderClienteHome = () => {
                   </div>
                   
                   <div className="d-flex items-center">
-                    <Image
-                      width={40}
+                    <img  width={40}
                       height={40}
-                      src="/img/avatars/1.png"
+                      src="https://img.freepik.com/premium-photo/happy-man-ai-generated-portrait-user-profile_1119669-1.jpg?w=2000"
                       alt="user"
-                      className="size-40 rounded-22 object-cover"
-                    />
+                      className="size-40 rounded-22 object-cover" />
                     <div className="ml-10">
                       <div className="text-14 fw-500 text-dark-1">
                         {user?.nombre || user?.email?.split('@')[0] || 'Usuario'}

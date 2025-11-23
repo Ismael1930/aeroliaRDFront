@@ -11,7 +11,7 @@ const PopularRoutes = () => {
     {
       id: 1,
       tag: "",
-      img: "/img/rentals/1.png",
+      img: "https://cdn.pixabay.com/photo/2020/04/04/20/43/new-york-5003804_1280.jpg",
       destination: "Istanbul - New York",
       tripType: "Round-trip",
       data: "Wed, Jun 1 - Sun, Jun 5",
@@ -21,7 +21,7 @@ const PopularRoutes = () => {
     {
       id: 2,
       tag: "",
-      img: "/img/rentals/2.png",
+      img: "https://cdn.pixabay.com/photo/2021/11/17/15/07/paris-6803796_1280.jpg",
       destination: "Estambul - París",
       tripType: "Ida y vuelta",
       data: "Mié, 1 Jun - Dom, 5 Jun",
@@ -31,7 +31,7 @@ const PopularRoutes = () => {
     {
       id: 3,
       tag: "",
-      img: "/img/rentals/3.png",
+      img: "https://cdn.pixabay.com/photo/2022/06/27/08/18/istanbul-aerial-view-7287019_1280.jpg",
       destination: "Estambul - Antalya",
       tripType: "Ida y vuelta",
       data: "Mié, 1 Jun - Dom, 5 Jun",

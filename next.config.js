@@ -10,6 +10,14 @@ const nextConfig = {
       "global-builtin",
     ],
   },
+  images: {
+    domains: [
+      'cdn.pixabay.com',
+      'images.unsplash.com',
+      'img.freepik.com',
+      'images.pexels.com'
+    ],
+  },
 };
 
 module.exports = nextConfig;
