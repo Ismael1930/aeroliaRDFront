@@ -6,8 +6,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import MainMenu from "../MainMenu";
 import MobileMenu from "../MobileMenu";
+import { useAuth } from '@/context/AuthContext';
 
 const HeaderDashBoard = () => {
+  const { user } = useAuth();
   const [navbar, setNavbar] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -95,14 +97,19 @@ const HeaderDashBoard = () => {
                 </div>
                 {/* End .row */}
 
-                <div className="pl-15">
-                  <Image
+                <div className="pl-15 d-flex flex-column items-center">
+                  <img
                     width={50}
                     height={50}
-                    src="/img/avatars/3.png"
-                    alt="image"
+                    src="https://img.freepik.com/premium-photo/happy-man-ai-generated-portrait-user-profile_1119669-1.jpg?w=2000"
+                    alt="profile"
                     className="size-50 rounded-22 object-cover"
+                    style={{ objectFit: 'cover' }}
                   />
+                  <div className="pt-8 text-center">
+                    <div className="text-14 fw-600">{user?.userName || user?.email || 'Usuario'}</div>
+                    <div className="text-12 text-light-1">{user?.rol || (user?.roles && user.roles[0]) || 'Cliente'}</div>
+                  </div>
                 </div>
 
                 <div className="d-none xl:d-flex x-gap-20 items-center pl-20">

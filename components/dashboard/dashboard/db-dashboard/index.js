@@ -61,7 +61,7 @@ const index = () => {
               <div className="col-xl-5 col-md-6">
                 <div className="py-30 px-30 rounded-4 bg-white shadow-3">
                   <div className="d-flex justify-between items-center">
-                    <h2 className="text-18 lh-1 fw-500">Recent Bookings</h2>
+                    <h2 className="text-18 lh-1 fw-500">Reservas recientes</h2>
                     <div>
                       <Link
                         href="#"
