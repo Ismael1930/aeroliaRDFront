@@ -35,6 +35,17 @@ const RercentBooking = () => {
     return { color: "gray-2", text: "dark", label: r.estado || "Unknown" };
   };
 
+  // Formatear fecha a formato amigable
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    // Soporta ISO, timestamp, y variantes comunes
+    const d = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+    if (isNaN(d.getTime())) return dateStr;
+    // Ejemplo: 01/12/2025 14:30
+    const pad = (n) => n.toString().padStart(2, "0");
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   return (
     <div className="overflow-scroll scroll-bar-1 pt-30">
       <table className="table-2 col-12">
@@ -53,7 +64,8 @@ const RercentBooking = () => {
             const itemLabel = row.codigoReserva || row.codigo || `${row.origen?.nombre || row.origen || "-"} → ${row.destino?.nombre || row.destino || "-"}`;
             const total = formatTotal(row);
             const status = getStatus(row);
-            const createdAt = row.fechaReserva || row.createdAt || row.created || "-";
+            const createdAtRaw = row.fechaReserva || row.createdAt || row.created || "-";
+            const createdAt = formatDate(createdAtRaw);
 
             return (
               <tr key={index}>
