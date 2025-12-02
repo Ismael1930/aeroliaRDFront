@@ -2,41 +2,33 @@ export const testimonial1 = [
   {
     id: 1,
     avatar: "/img/avatars/testimonials/1.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `The place is in a great location in Gumbet. The area is safe and
-        beautiful. The apartment was comfortable and the host was kind and
-        responsive to our requests. Really a nice place.`,
+    name: "Ana Martínez",
+    designation: "Diseñadora UX / UI",
+    text: `El lugar está en una excelente ubicación en Gumbet. La zona es segura y hermosa. El apartamento era cómodo y el anfitrión fue amable y respondió a nuestras solicitudes. Realmente un lugar agradable.`,
     dealyAnimation: "100",
   },
   {
     id: 2,
     avatar: "/img/avatars/testimonials/2.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `The place is in a great location in Gumbet. The area is safe and
-        beautiful. The apartment was comfortable and the host was kind and
-        responsive to our requests. Really a nice place.`,
+    name: "Carlos Gómez",
+    designation: "Desarrollador Web",
+    text: `El lugar está en una excelente ubicación en Gumbet. La zona es segura y hermosa. El apartamento era cómodo y el anfitrión fue amable y respondió a nuestras solicitudes. Realmente un lugar agradable.`,
     dealyAnimation: "200",
   },
   {
     id: 3,
     avatar: "/img/avatars/testimonials/3.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `The place is in a great location in Gumbet. The area is safe and
-        beautiful. The apartment was comfortable and the host was kind and
-        responsive to our requests. Really a nice place.`,
+    name: "María López",
+    designation: "Gerente de Producto",
+    text: `El lugar está en una excelente ubicación en Gumbet. La zona es segura y hermosa. El apartamento era cómodo y el anfitrión fue amable y respondió a nuestras solicitudes. Realmente un lugar agradable.`,
     dealyAnimation: "300",
   },
   {
     id: 4,
     avatar: "/img/avatars/testimonials/1.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `The place is in a great location in Gumbet. The area is safe and
-        beautiful. The apartment was comfortable and the host was kind and
-        responsive to our requests. Really a nice place.`,
+    name: "Javier Ruiz",
+    designation: "Analista de Datos",
+    text: `El lugar está en una excelente ubicación en Gumbet. La zona es segura y hermosa. El apartamento era cómodo y el anfitrión fue amable y respondió a nuestras solicitudes. Realmente un lugar agradable.`,
     dealyAnimation: "400",
   },
 ];
@@ -45,55 +37,45 @@ export const testimonial2 = [
     id: 1,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/avatars/testimonials/1.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Ana Martínez",
+    designation: "Diseñadora UX / UI",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
     dealyAnimation: "100",
   },
   {
     id: 2,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/avatars/testimonials/2.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Carlos Gómez",
+    designation: "Desarrollador Web",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
     dealyAnimation: "200",
   },
   {
     id: 3,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/avatars/testimonials/3.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "María López",
+    designation: "Gerente de Producto",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
     dealyAnimation: "300",
   },
   {
     id: 4,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/avatars/testimonials/4.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Javier Ruiz",
+    designation: "Analista de Datos",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
     dealyAnimation: "400",
   },
   {
     id: 5,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/avatars/testimonials/5.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Lucía Torres",
+    designation: "Especialista en Marketing",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
     dealyAnimation: "500",
   },
 ];
@@ -103,50 +85,40 @@ export const testimonial3 = [
     id: 1,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/testimonials/2/1.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Ana Martínez",
+    designation: "Diseñadora UX / UI",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
   },
   {
     id: 2,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/testimonials/2/2.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Carlos Gómez",
+    designation: "Desarrollador Web",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
   },
   {
     id: 3,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/testimonials/2/3.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "María López",
+    designation: "Gerente de Producto",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
   },
   {
     id: 4,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/testimonials/2/4.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Javier Ruiz",
+    designation: "Analista de Datos",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
   },
   {
     id: 5,
     meta: "Hotel Equatorial Melaka",
     avatar: "/img/testimonials/2/5.png",
-    name: "Annette Black",
-    designation: "UX / UI Designer",
-    text: `"Our family was traveling via bullet train between cities in
-    Japan with our luggage - the location for this hotel made that so
-    easy. Agoda price was fantastic."`,
+    name: "Lucía Torres",
+    designation: "Especialista en Marketing",
+    text: `"Nuestra familia viajaba en tren bala entre ciudades en Japón con nuestro equipaje - la ubicación de este hotel hizo que todo fuera muy fácil. El precio de Agoda fue fantástico."`,
   },
 ];

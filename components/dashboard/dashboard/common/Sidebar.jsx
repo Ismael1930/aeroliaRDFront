@@ -17,11 +17,11 @@ console.log('Sidebar - User:', user);
 console.log('Sidebar - isAdmin:', isAdmin);
 
   const handleLogout = async () => {
-    await logout();
-    // Limpiar completamente el localStorage
+    // Limpiar completamente el localStorage ANTES de llamar logout
     if (typeof window !== 'undefined') {
       localStorage.clear();
     }
+    await logout();
     router.push('/login');
   };
 
@@ -36,7 +36,7 @@ console.log('Sidebar - isAdmin:', isAdmin);
     {
       id: 10,
       icon: <FaPlaneDeparture size={20} className="mr-15" />,
-      name: "Gestión de Vuelos",
+      name: "Vuelos",
       routePath: "/dashboard/db-vuelos",
       adminOnly: true,
     },
@@ -78,13 +78,13 @@ console.log('Sidebar - isAdmin:', isAdmin);
      {
       id: 4,
       icon: <FaCog size={20} className="mr-15" />,
-      name: "Settings",
+      name: "Configuración",
       routePath: "/dashboard/db-settings",
     },
     {
       id: 5,
       icon: <FaSignOutAlt size={20} className="mr-15" />,
-      name: "Logout",
+      name: "Cerrar sesión",
       routePath: "/login",
     },
   ];
@@ -101,7 +101,7 @@ console.log('Sidebar - isAdmin:', isAdmin);
     <div className="sidebar -dashboard">
           {menuItems.map((item) => (
         <div className="sidebar__item" key={item.id}>
-          {item.name === "Logout" ? (
+          {item.name === "Cerrar sesión" ? (
             <div className="sidebar__button">
               <button
                 onClick={handleLogout}

@@ -2,9 +2,9 @@ import React from "react";
 
 function Footer() {
   const linksData = [
-    { label: "Privacy", url: "#" },
-    { label: "Terms", url: "#" },
-    { label: "Site Map", url: "#" },
+    { label: "Privacidad", url: "#" },
+    { label: "Términos", url: "#" },
+    { label: "Mapa del sitio", url: "#" },
   ];
 
   return (
@@ -14,7 +14,7 @@ function Footer() {
           <div className="row y-gap-20 items-center">
             <div className="col-auto">
               <div className="text-14 lh-14 mr-30">
-                © {new Date().getFullYear()} GoTrip LLC All rights reserved.
+                © {new Date().getFullYear()} AerolineaRD. Todos los derechos reservados.
               </div>
             </div>
 
@@ -35,7 +35,7 @@ function Footer() {
 
         <div className="col-auto">
           <div className="d-flex x-gap-5 y-gap-5 items-center">
-            <button className="text-14 fw-500 underline">English (US)</button>
+            <button className="text-14 fw-500 underline">Español (ES)</button>
             <button className="text-14 fw-500 underline">USD</button>
           </div>
         </div>

@@ -90,8 +90,16 @@ export const AuthProvider = ({ children }) => {
       await authService.logout();
       setUser(null);
       setIsAuth(false);
+      // Asegurar que se limpie el localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+      }
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
+      // Limpiar de todas formas aunque haya error
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+      }
     }
   };
 

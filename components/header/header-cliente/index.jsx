@@ -112,12 +112,12 @@ const HeaderCliente = () => {
                 {/* End .row */}
 
                 <div className="pl-15 text-center">
-                  <Image
-                    width={50}
-                    height={50}
-                    src="/img/avatars/3.png"
-                    alt="image"
-                    className="size-50 rounded-22 object-cover"
+                  <img
+                    width={40}
+                    height={40}
+                    src="https://img.freepik.com/premium-photo/happy-man-ai-generated-portrait-user-profile_1119669-1.jpg?w=2000"
+                    alt="user"
+                    className="size-40 rounded-22 object-cover"
                   />
                   <div className="text-14 fw-500 text-dark-1 mt-5">
                     {user?.nombre || user?.email?.split('@')[0] || 'Usuario'}

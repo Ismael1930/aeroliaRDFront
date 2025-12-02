@@ -15,7 +15,7 @@ const MainMenu = ({ style = "" }) => {
     <nav className="menu js-navList">
       <ul className={`menu__nav ${style} -is-active`}>
         <li className={pathname === "/destinations" ? "current" : ""}>
-          <Link href="/destinations">Destinations</Link>
+          <Link href="/destinations">Destinos</Link>
         </li>
         {/* End Destinatinos single menu */}
 
@@ -25,7 +25,7 @@ const MainMenu = ({ style = "" }) => {
         {/* End Blog menu */}
 
         <li className={pathname === "/contact" ? "current" : ""}>
-          <Link href="/contact">Contact</Link>
+          <Link href="/contact">Contacto</Link>
         </li>
         {/* End Contact menu */}
       </ul>

@@ -52,11 +52,11 @@ const RercentBooking = () => {
         <thead>
           <tr>
             <th>#</th>
-            <th>Item</th>
+            <th>Reserva</th>
             <th>Total</th>
-            <th>Paid</th>
-            <th>Status</th>
-            <th>Created At</th>
+            <th>Pagado</th>
+            <th>Estado</th>
+            <th>Fecha de creación</th>
           </tr>
         </thead>
         <tbody>

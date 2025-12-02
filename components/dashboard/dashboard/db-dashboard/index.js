@@ -1,4 +1,3 @@
-
 import DashboardCard from "./components/DashboardCard";
 import Sidebar from "../common/Sidebar";
 import Header from "../../../../components/header/dashboard-header";
@@ -31,9 +30,9 @@ const index = () => {
           <div className="dashboard__content bg-light-2">
             <div className="row y-gap-20 justify-between items-end pb-60 lg:pb-40 md:pb-32">
               <div className="col-12">
-                <h1 className="text-30 lh-14 fw-600">Dashboard</h1>
+                <h1 className="text-30 lh-14 fw-600">Panel de Control</h1>
                 <div className="text-15 text-light-1">
-                  Lorem ipsum dolor sit amet, consectetur.
+                  Bienvenido al panel de control. Aquí puedes visualizar métricas, estadísticas y gestionar tus reservas de manera eficiente.
                 </div>
               </div>
               {/* End .col-12 */}
@@ -46,7 +45,7 @@ const index = () => {
               <div className="col-xl-7 col-md-6">
                 <div className="py-30 px-30 rounded-4 bg-white shadow-3">
                   <div className="d-flex justify-between items-center">
-                    <h2 className="text-18 lh-1 fw-500">Earning Statistics</h2>
+                    <h2 className="text-18 lh-1 fw-500">Estadísticas de ingresos</h2>
                     <ChartSelect />
                   </div>
                   {/* End .d-flex */}

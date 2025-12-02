@@ -26,22 +26,34 @@ const Header1 = () => {
     };
   }, []);
 
+  // Clases condicionales para fondo y texto
+  // Invertir lógica: arriba blanco, scroll dark-1
+  const isSticky = navbar;
+  const headerBgClass = isSticky ? "bg-dark-1 is-sticky" : "bg-white";
+  const textClass = isSticky ? "text-white" : "text-dark-1";
+  const btnClass = isSticky
+    ? "button px-30 fw-400 text-14 bg-white h-50 text-dark-1"
+    : "button px-30 fw-400 text-14 bg-dark-1 h-50 text-white";
+  const btnOutlineClass = isSticky
+    ? "button px-30 fw-400 text-14 border-white h-50 text-white ml-20"
+    : "button px-30 fw-400 text-14 border-dark-1 h-50 text-dark-1 ml-20";
+
   return (
     <>
-      <header className={`header ${navbar ? "bg-dark-1 is-sticky" : ""}`}>
+      <header className={`header ${headerBgClass}`}>
         <div className="header__container px-30 sm:px-20">
           <div className="row justify-between items-center">
             <div className="col-auto">
               <div className="d-flex items-center">
                 <Link href="/" className="header-logo mr-20 d-flex items-center">
                   <img src="/img/Logo.png" alt="logo icon" style={{width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover'}} />
-                  <span className="text-20 fw-600 ml-10">AerolineaRD</span>
+                  <span className={`text-20 fw-600 ml-10 ${textClass}`}>AerolineaRD</span>
                 </Link>
                 {/* End logo */}
 
                 <div className="header-menu">
                   <div className="header-menu__content">
-                    <MainMenu style="text-white" />
+                    <MainMenu style={textClass} />
                   </div>
                 </div>
                 {/* End header-menu */}
@@ -52,8 +64,8 @@ const Header1 = () => {
 
             <div className="col-auto">
               <div className="d-flex items-center">
-                <div className="row x-gap-20 items-center xxl:d-none">
-                  <CurrenctyMegaMenu textClass="text-white" />
+                <div className={`row x-gap-20 items-center xxl:d-none ${textClass}`}>
+                  <CurrenctyMegaMenu textClass={textClass} />
                   {/* End Megamenu for Currencty */}
 
                   {/* Start vertical devider*/}
@@ -62,7 +74,7 @@ const Header1 = () => {
                   </div>
                   {/* End vertical devider*/}
 
-                  <LanguageMegaMenu textClass="text-white" />
+                  <LanguageMegaMenu textClass={textClass} />
                   {/* End Megamenu for Language */}
                 </div>
                 {/* End language and currency selector */}
@@ -71,21 +83,21 @@ const Header1 = () => {
                 <div className="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
                   <Link
                     href="/login"
-                    className="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1"
+                    className={btnClass}
                   >
-                    Become An Expert
+                    Conviértete en Experto
                   </Link>
                   <Link
                     href="/signup"
-                    className="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20"
+                    className={btnOutlineClass}
                   >
-                    Sign In / Register
+                    Iniciar Sesión / Registrarse
                   </Link>
                 </div>
                 {/* End btn-group */}
 
                 {/* Start mobile menu icon */}
-                <div className="d-none xl:d-flex x-gap-20 items-center pl-30 text-white">
+                <div className={`d-none xl:d-flex x-gap-20 items-center pl-30 ${textClass}`}>
                   <div>
                     <Link
                       href="/login"

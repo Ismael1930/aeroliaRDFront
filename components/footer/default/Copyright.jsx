@@ -7,7 +7,7 @@ const Copyright = () => {
         <div className="row x-gap-30 y-gap-10">
           <div className="col-auto">
             <div className="d-flex items-center">
-              © {new Date().getFullYear()} by
+              © {new Date().getFullYear()} por
               <a
                 href="https://themeforest.net/user/ib-themes"
                 className="mx-2"
@@ -16,16 +16,16 @@ const Copyright = () => {
               >
                 ib-themes
               </a>
-              All rights reserved.
+              Todos los derechos reservados.
             </div>
           </div>
           {/* End .col */}
 
           <div className="col-auto">
             <div className="d-flex x-gap-15">
-              <a href="#">Privacy</a>
-              <a href="#">Terms</a>
-              <a href="#">Site Map</a>
+              <a href="#">Privacidad</a>
+              <a href="#">Términos</a>
+              <a href="#">Mapa del sitio</a>
             </div>
           </div>
           {/* End .col */}
@@ -40,7 +40,7 @@ const Copyright = () => {
             <div className="d-flex items-center">
               <button className="d-flex items-center text-14 fw-500 text-dark-1 mr-10">
                 <i className="icon-globe text-16 mr-10" />
-                <span className="underline">English (US)</span>
+                <span className="underline">Español (ES)</span>
               </button>
               <button className="d-flex items-center text-14 fw-500 text-dark-1">
                 <i className="icon-usd text-16 mr-10" />
