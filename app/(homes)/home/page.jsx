@@ -1,15 +1,7 @@
 import DynamicHeader from "@/components/header/DynamicHeader";
 import Hero10 from "@/components/hero/hero-10";
-import Link from "next/link";
 import Footer8 from "@/components/footer/footer-8";
-import Blog from "@/components/blog/Blog3";
 import BlockGuide from "@/components/block/BlockGuide";
-import Flights from "@/components/flight/Flights";
-import AppBanner from "@/components/home/home-10/AppBanner";
-import TopDestinations from "@/components/home/home-10/TopDestinations";
-import TestimonialRating from "@/components/home/home-10/TestimonialRating";
-import Testimonial from "@/components/home/home-10/Testimonial";
-import PopularRoutes from "@/components/home/home-10/PopularRoutes";
 
 export const metadata = {
   title: "Inicio || GoTrip - Plantilla de Viajes y Tours",

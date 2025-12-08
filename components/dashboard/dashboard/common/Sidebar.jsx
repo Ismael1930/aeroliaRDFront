@@ -55,13 +55,6 @@ console.log('Sidebar - isAdmin:', isAdmin);
       adminOnly: true,
     },
     {
-      id: 13,
-      icon: <FaUserFriends size={20} className="mr-15" />,
-      name: "Clientes",
-      routePath: "/dashboard/db-clientes",
-      adminOnly: true,
-    },
-    {
       id: 14,
       icon: <FaReceipt size={20} className="mr-15" />,
       name: "Facturas",

@@ -84,7 +84,7 @@ const Header1 = () => {
                     href="/login"
                     className={btnClass}
                   >
-                    Conviértete en Experto
+                    Soy un Experto
                   </Link>
                   <Link
                     href="/signup"

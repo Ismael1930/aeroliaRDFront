@@ -968,8 +968,6 @@ const FlightBookingPage = () => {
           </div>
         </div>
       )}
-
-      <CallToActions />
       <DefaultFooter />
     </>
   );

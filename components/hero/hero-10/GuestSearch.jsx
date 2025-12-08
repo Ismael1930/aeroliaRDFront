@@ -5,7 +5,6 @@ import React, { useState, useEffect } from "react";
 const counters = [
   { name: "Adultos", defaultValue: 2 },
   { name: "Niños", defaultValue: 1 },
-  { name: "Habitaciones", defaultValue: 1 },
 ];
 
 const Counter = ({ name, defaultValue, onCounterChange }) => {
@@ -65,13 +64,12 @@ const GuestSearch = ({ onChange }) => {
   const [guestCounts, setGuestCounts] = useState({
     Adultos: 2,
     Niños: 1,
-    Habitaciones: 1,
   });
 
   // Notificar valores iniciales cuando el componente se monta
   useEffect(() => {
     if (onChange) {
-      onChange({ adultos: guestCounts.Adultos, ninos: guestCounts.Niños, habitaciones: guestCounts.Habitaciones });
+      onChange({ adultos: guestCounts.Adultos, ninos: guestCounts.Niños });
     }
   }, []);
 
@@ -79,7 +77,7 @@ const GuestSearch = ({ onChange }) => {
     const newCounts = { ...guestCounts, [name]: value };
     setGuestCounts(newCounts);
     if (onChange) {
-      onChange({ adultos: newCounts.Adultos, ninos: newCounts.Niños, habitaciones: newCounts.Habitaciones });
+      onChange({ adultos: newCounts.Adultos, ninos: newCounts.Niños });
     }
   };
   return (
@@ -94,8 +92,7 @@ const GuestSearch = ({ onChange }) => {
         <div className="text-15 text-light-1 ls-2 lh-16">
           <span className="js-count-adult">{guestCounts.Adultos}</span> adultos -{" "}
           <span className="js-count-child">{guestCounts.Niños}</span>{" "}
-          niños - <span className="js-count-room">{guestCounts.Habitaciones}</span>{" "}
-          habitación
+          niños
         </div>
       </div>
       {/* End guest */}
