@@ -1,7 +1,6 @@
 import DashboardCard from "./components/DashboardCard";
 import Sidebar from "../common/Sidebar";
 import Header from "../../../../components/header/dashboard-header";
-import ChartSelect from "./components/ChartSelect";
 import ChartMain from "./components/ChartMain";
 import Link from "next/link";
 import RercentBooking from "./components/RercentBooking";
@@ -46,7 +45,6 @@ const index = () => {
                 <div className="py-30 px-30 rounded-4 bg-white shadow-3">
                   <div className="d-flex justify-between items-center">
                     <h2 className="text-18 lh-1 fw-500">Estadísticas de ingresos</h2>
-                    <ChartSelect />
                   </div>
                   {/* End .d-flex */}
 
