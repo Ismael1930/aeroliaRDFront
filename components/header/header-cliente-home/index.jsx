@@ -51,7 +51,7 @@ const HeaderClienteHome = () => {
 
                 <div className="header-menu">
                   <div className="header-menu__content">
-                    <MainMenu style="text-dark-1" />
+                    {/* <MainMenu style="text-dark-1" /> */}
                   </div>
                 </div>
                 {/* End header-menu */}

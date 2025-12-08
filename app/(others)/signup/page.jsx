@@ -27,20 +27,6 @@ const SignUp = () => {
               <div className="px-50 py-50 sm:px-20 sm:py-20 bg-white shadow-4 rounded-4">
                 <SignUpForm />
                 {/* End SignUP */}
-
-                <div className="row y-gap-20 pt-30">
-                  <div className="col-12">
-                    <div className="text-center">o ingrese con</div>
-                  </div>
-                  <LoginWithSocial />
-                  <div className="col-12">
-                    <div className="text-center px-30">
-                      Al crear una cuenta, usted acepta nuestros Términos de Servicio
-                      y la Declaración de Privacidad.
-                    </div>
-                  </div>
-                </div>
-                {/* End .row */}
               </div>
             </div>
           </div>

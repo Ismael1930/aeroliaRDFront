@@ -80,12 +80,12 @@ const FlightListPage = () => {
       <section className="layout-pt-md layout-pb-md bg-light-2">
         <div className="container">
           <div className="row y-gap-30">
-            <div className="col-xl-3">
-              <aside className="sidebar py-20 px-20 xl:d-none bg-white">
+            <div className="col-xl-2">
+              {/* <aside className="sidebar py-20 px-20 xl:d-none bg-white">
                 <div className="row y-gap-40">
                   <Sidebar />
                 </div>
-              </aside>
+              </aside> */}
               {/* End sidebar for desktop */}
 
               <div
@@ -147,7 +147,7 @@ const FlightListPage = () => {
       </section>
       {/* End layout for listing sidebar and content */}
 
-      <CallToActions />
+      {/* <CallToActions /> */}
       {/* End Call To Actions Section */}
 
       <DefaultFooter />

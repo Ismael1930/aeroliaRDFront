@@ -27,20 +27,6 @@ const LogIn = () => {
               <div className="px-50 py-50 sm:px-20 sm:py-20 bg-white shadow-4 rounded-4">
                 <LoginForm />
                 {/* End .Login */}
-
-                <div className="row y-gap-20 pt-30">
-                  <div className="col-12">
-                    <div className="text-center">o inicia con</div>
-                  </div>
-                  <LoginWithSocial />
-                  <div className="col-12">
-                    <div className="text-center px-30">
-                      Al crear una cuenta, aceptas nuestros Términos de Servicio
-                      y la Declaración de Privacidad.
-                    </div>
-                  </div>
-                </div>
-                {/* End .row */}
               </div>
             </div>
           </div>
