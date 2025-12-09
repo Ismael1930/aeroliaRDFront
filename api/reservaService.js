@@ -39,7 +39,7 @@ export const obtenerReservaPorCodigo = async (codigo) => {
  */
 export const obtenerReservasCliente = async (idCliente) => {
   try {
-    const response = await api.get(`/reserva/cliente/${idCliente}`);
+    const response = await api.get(`/Reserva/cliente/${idCliente}`);
     return response.data;
   } catch (error) {
     console.error('Error en obtenerReservasCliente:', error);
@@ -49,15 +49,15 @@ export const obtenerReservasCliente = async (idCliente) => {
 
 /**
  * Modificar una reserva
- * @param {string} codigo - Código de la reserva
  * @param {Object} modificacion - Datos de modificación
  * @param {string} modificacion.codigoReserva - Código de la reserva
- * @param {number} modificacion.nuevoIdVuelo - Nuevo ID del vuelo
- * @param {string} modificacion.nuevoNumAsiento - Nuevo número de asiento
+ * @param {number} modificacion.nuevoIdVuelo - Nuevo ID del vuelo (opcional)
+ * @param {string} modificacion.nuevoNumAsiento - Nuevo número de asiento (opcional)
+ * @param {string} modificacion.nuevoEstado - Nuevo estado de la reserva (opcional)
  */
-export const modificarReserva = async (codigo, modificacion) => {
+export const modificarReserva = async (modificacion) => {
   try {
-    const response = await api.put(`/reserva/${codigo}/modificar`, modificacion);
+    const response = await api.put(`/Reserva`, modificacion);
     return response.data;
   } catch (error) {
     console.error('Error en modificarReserva:', error);
@@ -66,12 +66,12 @@ export const modificarReserva = async (codigo, modificacion) => {
 };
 
 /**
- * Cancelar una reserva
+ * Cancelar una reserva (cambia estado a Cancelada, no elimina)
  * @param {string} codigo - Código de la reserva
  */
 export const cancelarReserva = async (codigo) => {
   try {
-    const response = await api.delete(`/reserva/${codigo}/cancelar`);
+    const response = await api.delete(`/Reserva/${codigo}`);
     return response.data;
   } catch (error) {
     console.error('Error en cancelarReserva:', error);

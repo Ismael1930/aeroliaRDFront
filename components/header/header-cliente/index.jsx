@@ -71,6 +71,22 @@ const HeaderCliente = () => {
 
                 <div className="row items-center x-gap-5 y-gap-20 pl-20 lg:d-none">
                   <div className="col-auto">
+                    <Link 
+                      href="/mis-reservas"
+                      className="button -blue-1-05 size-50 rounded-22 flex-center"
+                      title="Mis Reservas"
+                    >
+                      <Image
+                        width={20}
+                        height={20}
+                        src="/img/dashboard/sidebar/booking.svg"
+                        alt="reservas"
+                      />
+                    </Link>
+                  </div>
+                  {/* End mis reservas */}
+
+                  <div className="col-auto">
                     <button className="button -blue-1-05 size-50 rounded-22 flex-center">
                       <Image
                         width={20}

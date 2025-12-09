@@ -64,15 +64,14 @@ const HeaderClienteHome = () => {
               <div className="d-flex items-center">
                 {/* User section for logged in clients */}
                 <div className="d-flex items-center is-menu-opened-hide md:d-none">
+                  <Link 
+                    href="/mis-reservas"
+                    className="text-14 fw-500 text-dark-1 mr-30 hover-text-blue-1"
+                  >
+                    Mis Reservas
+                  </Link>
+                  
                   <div className="d-flex items-center mr-20">
-                    <Link href="/dashboard/db-settings" className="button -blue-1-05 size-40 rounded-22 flex-center mr-10">
-                      <Image
-                        width={18}
-                        height={18}
-                        src="/img/dashboard/sidebar/gear.svg"
-                        alt="settings"
-                      />
-                    </Link>
                     <button 
                       onClick={handleLogout}
                       className="button -blue-1-05 size-40 rounded-22 flex-center"
