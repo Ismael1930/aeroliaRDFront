@@ -7,18 +7,33 @@ import FlyingFromLocation from "./FlyingFromLocation";
 import FlyingToLocation from "./FlyingToLocation";
 import { useRouter } from "next/navigation";
 import { buscarVuelos } from "@/api/vueloService";
+import { useSearch } from "@/context/SearchContext";
 
 const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchComplete, variant = 'home' }) => {
   const router = useRouter();
-  const [origen, setOrigen] = useState(null);
-  const [destino, setDestino] = useState(null);
-  const [fechaSalidaInicio, setFechaSalidaInicio] = useState(null);
+  const { searchData, updateSearchData } = useSearch();
+  
+  // Extraer el número de maletas del string (ej: "2 Maletas" -> 2)
+  const numMaletas = typeof maletas === 'string' ? parseInt(maletas.match(/\d+/)?.[0] || '0') : (maletas || 0);
+  
+  const [origen, setOrigen] = useState(searchData.origen);
+  const [destino, setDestino] = useState(searchData.destino);
+  const [fechaSalidaInicio, setFechaSalidaInicio] = useState(searchData.fechaSalida);
   const [fechaSalidaFin, setFechaSalidaFin] = useState(null);
-  const [fechaRegresoInicio, setFechaRegresoInicio] = useState(null);
+  const [fechaRegresoInicio, setFechaRegresoInicio] = useState(searchData.fechaRegreso);
   const [fechaRegresoFin, setFechaRegresoFin] = useState(null);
-  const [pasajeros, setPasajeros] = useState({ adultos: 2, ninos: 1, habitaciones: 1 });
+  const [pasajeros, setPasajeros] = useState(searchData.pasajeros);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Sincronizar con el contexto cuando cambie
+  useEffect(() => {
+    setOrigen(searchData.origen || null);
+    setDestino(searchData.destino || null);
+    setFechaSalidaInicio(searchData.fechaSalida || null);
+    setFechaRegresoInicio(searchData.fechaRegreso || null);
+    setPasajeros(searchData.pasajeros || { adultos: 2, ninos: 1 });
+  }, [searchData]);
 
   // Determinar el texto del botón
   const getButtonText = () => {
@@ -38,6 +53,18 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
         setLoading(false);
         return;
       }
+
+      // Guardar datos en el contexto antes de buscar
+      updateSearchData({
+        origen,
+        destino,
+        fechaSalida: fechaSalidaInicio,
+        fechaRegreso: fechaRegresoInicio,
+        pasajeros,
+        maletas: numMaletas,
+        clase: claseSeleccionada,
+        tipoViaje
+      });
       
       // Crear filtros opcionales - solo incluir si están definidos
       const filtros = {};
@@ -119,10 +146,10 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
           </div>
         )}
         <div className="button-grid items-center">
-          <FlyingFromLocation onSelect={setOrigen} />
+          <FlyingFromLocation onSelect={setOrigen} initialValue={origen} />
           {/* End Location Flying From */}
 
-          <FlyingToLocation onSelect={setDestino} />
+          <FlyingToLocation onSelect={setDestino} initialValue={destino} />
           {/* End Location Flying To */}
 
           <div className="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
@@ -153,7 +180,7 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
           )}
           {/* End Return */}
 
-          <GuestSearch onChange={setPasajeros} />
+          <GuestSearch onChange={setPasajeros} initialValue={pasajeros} />
           {/* End guest */}
 
           <div className="button-item">

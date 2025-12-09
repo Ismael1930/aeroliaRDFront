@@ -4,12 +4,20 @@
 import { useState, useEffect } from "react";
 import { obtenerAeropuertos } from "@/api/aeropuertoService";
 
-const FlyingFromLocation = ({ onSelect }) => {
+const FlyingFromLocation = ({ onSelect, initialValue }) => {
   const [searchValue, setSearchValue] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [aeropuertos, setAeropuertos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Establecer valor inicial cuando se recibe
+  useEffect(() => {
+    if (initialValue) {
+      setSearchValue(initialValue.nombre || initialValue.name || "");
+      setSelectedItem(initialValue);
+    }
+  }, [initialValue]);
 
   useEffect(() => {
     const cargarAeropuertos = async () => {

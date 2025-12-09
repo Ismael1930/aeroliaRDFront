@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react";
+import { useSearch } from "@/context/SearchContext";
 import CallToActions from "@/components/common/CallToActions";
 import DynamicHeader from "@/components/header/DynamicHeader";
 import DefaultFooter from "@/components/footer/default";
@@ -12,14 +13,30 @@ import Pagination from "@/components/flight-list/common/Pagination";
 import Sidebar from "@/components/flight-list/flight-list-v1/Sidebar";
 
 const FlightListPage = () => {
+  const { searchData } = useSearch();
+  
+  // Función para mapear el tipo de viaje del contexto al formato de UI
+  const mapTipoViajeToUI = (tipo) => {
+    if (tipo === "IdaYVuelta" || tipo === "Ida y Vuelta") return "Ida y Vuelta";
+    if (tipo === "SoloIda" || tipo === "Solo Ida") return "Solo Ida";
+    return "Ida y Vuelta";
+  };
+  
   const [sortBy, setSortBy] = useState('precio-asc');
   const [totalVuelos, setTotalVuelos] = useState(0);
-  const [claseSeleccionada, setClaseSeleccionada] = useState("Económica");
-  const [tipoViaje, setTipoViaje] = useState("Ida y Vuelta");
-  const [maletas, setMaletas] = useState("0 Maletas");
+  const [claseSeleccionada, setClaseSeleccionada] = useState(searchData.clase || "Económica");
+  const [tipoViaje, setTipoViaje] = useState(mapTipoViajeToUI(searchData.tipoViaje));
+  const [maletas, setMaletas] = useState(`${searchData.maletas || 0} Maleta${searchData.maletas === 1 ? '' : 's'}`);
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  // Sincronizar con el contexto
+  useEffect(() => {
+    setClaseSeleccionada(searchData.clase || "Económica");
+    setTipoViaje(mapTipoViajeToUI(searchData.tipoViaje));
+    setMaletas(`${searchData.maletas || 0} Maleta${searchData.maletas === 1 ? '' : 's'}`);
+  }, [searchData]);
 
   useEffect(() => {
     // Obtener el total de vuelos de localStorage

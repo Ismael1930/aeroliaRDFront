@@ -1,13 +1,30 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearch } from '@/context/SearchContext';
 import FilterSelect from "./FilterSelect";
 import MainFilterSearchBox from "./MainFilterSearchBox";
 
 const Index = () => {
-  const [claseSeleccionada, setClaseSeleccionada] = useState("Económica");
-  const [tipoViaje, setTipoViaje] = useState("Ida y Vuelta");
-  const [maletas, setMaletas] = useState("0 Maletas");
+  const { searchData } = useSearch();
+  
+  // Función para mapear el tipo de viaje del contexto al formato de UI
+  const mapTipoViajeToUI = (tipo) => {
+    if (tipo === "IdaYVuelta" || tipo === "Ida y Vuelta") return "Ida y Vuelta";
+    if (tipo === "SoloIda" || tipo === "Solo Ida") return "Solo Ida";
+    return "Ida y Vuelta";
+  };
+  
+  const [claseSeleccionada, setClaseSeleccionada] = useState(searchData.clase || "Económica");
+  const [tipoViaje, setTipoViaje] = useState(mapTipoViajeToUI(searchData.tipoViaje));
+  const [maletas, setMaletas] = useState(`${searchData.maletas || 0} Maleta${searchData.maletas === 1 ? '' : 's'}`);
+
+  // Sincronizar con el contexto
+  useEffect(() => {
+    setClaseSeleccionada(searchData.clase || "Económica");
+    setTipoViaje(mapTipoViajeToUI(searchData.tipoViaje));
+    setMaletas(`${searchData.maletas || 0} Maleta${searchData.maletas === 1 ? '' : 's'}`);
+  }, [searchData]);
 
   return (
     <section className="masthead -type-10">

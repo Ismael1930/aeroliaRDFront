@@ -60,11 +60,21 @@ const Counter = ({ name, defaultValue, onCounterChange }) => {
   );
 };
 
-const GuestSearch = ({ onChange }) => {
+const GuestSearch = ({ onChange, initialValue }) => {
   const [guestCounts, setGuestCounts] = useState({
-    Adultos: 2,
-    Niños: 1,
+    Adultos: initialValue?.adultos || 2,
+    Niños: initialValue?.ninos || 1,
   });
+
+  // Actualizar cuando cambie el valor inicial
+  useEffect(() => {
+    if (initialValue) {
+      setGuestCounts({
+        Adultos: initialValue.adultos || 2,
+        Niños: initialValue.ninos || 1,
+      });
+    }
+  }, [initialValue]);
 
   // Notificar valores iniciales cuando el componente se monta
   useEffect(() => {

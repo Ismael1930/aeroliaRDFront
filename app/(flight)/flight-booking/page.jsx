@@ -6,6 +6,7 @@ import CallToActions from "@/components/common/CallToActions";
 import DynamicHeader from "@/components/header/DynamicHeader";
 import DefaultFooter from "@/components/footer/default";
 import { useAuth } from "@/context/AuthContext";
+import { useSearch } from "@/context/SearchContext";
 import { crearReserva } from "@/api/reservaService";
 import { obtenerAsientosDisponibles } from "@/api/vueloService";
 
@@ -13,14 +14,15 @@ const FlightBookingPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuth, user, loading: authLoading } = useAuth();
+  const { searchData, clearSearchData } = useSearch();
   const [vuelo, setVuelo] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Estado del formulario
+  // Estado del formulario - inicializar con datos del contexto
   const [claseSeleccionada, setClaseSeleccionada] = useState(null);
-  const [numMaletas, setNumMaletas] = useState(0);
-  const [adultos, setAdultos] = useState(1);
-  const [ninos, setNinos] = useState(0);
+  const [numMaletas, setNumMaletas] = useState(Number(searchData.maletas) || 0);
+  const [adultos, setAdultos] = useState(Number(searchData.pasajeros?.adultos) || 1);
+  const [ninos, setNinos] = useState(Number(searchData.pasajeros?.ninos) || 0);
   const [pasajeros, setPasajeros] = useState([]);
   const [procesando, setProcesando] = useState(false);
   const [asientosDisponibles, setAsientosDisponibles] = useState([]);
@@ -238,6 +240,9 @@ const FlightBookingPage = () => {
         precioTotal: calcularPrecioTotal()
       });
       
+      // Limpiar datos de búsqueda después de confirmar la reserva
+      clearSearchData();
+      
       // Mostrar modal
       setMostrarModal(true);
       
@@ -435,7 +440,7 @@ const FlightBookingPage = () => {
                       <button 
                         type="button"
                         className="button -outline-blue-1 text-blue-1 size-40 rounded-4"
-                        onClick={() => setNumMaletas(Math.max(0, numMaletas - 1))}
+                        onClick={() => setNumMaletas(prev => Math.max(0, Number(prev) - 1))}
                       >
                         <i className="icon-minus text-12" />
                       </button>
@@ -446,7 +451,7 @@ const FlightBookingPage = () => {
                       <button 
                         type="button"
                         className="button -outline-blue-1 text-blue-1 size-40 rounded-4"
-                        onClick={() => setNumMaletas(numMaletas + 1)}
+                        onClick={() => setNumMaletas(prev => Number(prev) + 1)}
                       >
                         <i className="icon-plus text-12" />
                       </button>

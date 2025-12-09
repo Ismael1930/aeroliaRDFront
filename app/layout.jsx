@@ -14,6 +14,7 @@ import "rc-slider/assets/index.css";
 import { Provider } from "react-redux";
 import { store } from "../store/store";
 import { AuthProvider } from "../context/AuthContext";
+import { SearchProvider } from "../context/SearchContext";
 
 export default function RootLayout({ children }) {
   useEffect(() => {
@@ -46,8 +47,10 @@ export default function RootLayout({ children }) {
         <main>
           <Provider store={store}>
             <AuthProvider>
-              {children}
-              <SrollTop />
+              <SearchProvider>
+                {children}
+                <SrollTop />
+              </SearchProvider>
             </AuthProvider>
           </Provider>
         </main>
