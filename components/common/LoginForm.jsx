@@ -107,7 +107,7 @@ const LoginForm = () => {
       {/* End .col */}
 
       <div className="col-12">
-        <Link href="/help-center" className="text-14 fw-500 text-blue-1 underline">
+        <Link href="/forgot-password" className="text-14 fw-500 text-blue-1 underline">
           ¿Olvidaste tu contraseña?
         </Link>
       </div>

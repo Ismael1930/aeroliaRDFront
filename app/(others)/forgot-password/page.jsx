@@ -1,15 +1,13 @@
-import CallToActions from "@/components/common/CallToActions";
 import DefaultHeader from "@/components/header/default-header";
 import DefaultFooter from "@/components/footer/default";
-import LoginWithSocial from "@/components/common/LoginWithSocial";
-import LoginForm from "@/components/common/LoginForm";
+import ForgotPasswordForm from "@/components/common/ForgotPasswordForm";
 
 export const metadata = {
-  title: "Login || GoTrip - Travel & Tour React NextJS Template",
+  title: "Recuperar Contraseña || GoTrip - Travel & Tour React NextJS Template",
   description: "GoTrip - Travel & Tour React NextJS Template",
 };
 
-const LogIn = () => {
+const ForgotPassword = () => {
   return (
     <>
       {/* End Page Title */}
@@ -25,14 +23,14 @@ const LogIn = () => {
           <div className="row justify-center">
             <div className="col-xl-6 col-lg-7 col-md-9">
               <div className="px-50 py-50 sm:px-20 sm:py-20 bg-white shadow-4 rounded-4">
-                <LoginForm />
-                {/* End .Login */}
+                <ForgotPasswordForm />
+                {/* End .ForgotPassword */}
               </div>
             </div>
           </div>
         </div>
       </section>
-      {/* End login section */}
+      {/* End forgot password section */}
 
       <DefaultFooter />
       {/* End Call To Actions Section */}
@@ -40,4 +38,4 @@ const LogIn = () => {
   );
 };
 
-export default LogIn;
+export default ForgotPassword;

@@ -113,5 +113,19 @@ export const authService = {
     } catch (error) {
       throw error.response?.data || { message: 'Error al restablecer contraseña' };
     }
+  },
+
+  // Cambiar contraseña
+  cambiarContrasena: async (contrasenaActual, nuevaContrasena, confirmarContrasena) => {
+    try {
+      const response = await api.post('/auth/cambiar-contrasena', {
+        contrasenaActual,
+        nuevaContrasena,
+        confirmarContrasena
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error al cambiar contraseña' };
+    }
   }
 };

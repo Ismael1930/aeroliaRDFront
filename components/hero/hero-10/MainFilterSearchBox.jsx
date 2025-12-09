@@ -18,6 +18,7 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
   const [fechaRegresoFin, setFechaRegresoFin] = useState(null);
   const [pasajeros, setPasajeros] = useState({ adultos: 2, ninos: 1, habitaciones: 1 });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Determinar el texto del botón
   const getButtonText = () => {
@@ -29,6 +30,14 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
   const handleBuscar = async () => {
     try {
       setLoading(true);
+      setError('');
+
+      // Validación: origen y destino no pueden ser iguales
+      if (origen && destino && origen.codigo === destino.codigo) {
+        setError('El origen y el destino no pueden ser el mismo aeropuerto');
+        setLoading(false);
+        return;
+      }
       
       // Crear filtros opcionales - solo incluir si están definidos
       const filtros = {};
@@ -97,6 +106,18 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
   return (
     <>
       <div className={containerClass}>
+        {error && (
+          <div className="col-12 mb-20" style={{ 
+            padding: '15px',
+            borderRadius: '4px',
+            backgroundColor: '#f8d7da',
+            color: '#721c24',
+            border: '1px solid #f5c6cb',
+            marginBottom: '15px'
+          }}>
+            {error}
+          </div>
+        )}
         <div className="button-grid items-center">
           <FlyingFromLocation onSelect={setOrigen} />
           {/* End Location Flying From */}
