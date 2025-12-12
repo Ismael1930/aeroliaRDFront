@@ -25,6 +25,8 @@ const FlightBookingPage = () => {
   const [adultos, setAdultos] = useState(Number(searchData.pasajeros?.adultos) || 1);
   const [ninos, setNinos] = useState(Number(searchData.pasajeros?.ninos) || 0);
   const [pasajeros, setPasajeros] = useState([]);
+  const [pasajeroPerfil, setPasajeroPerfil] = useState(null);
+  const [clientePerfil, setClientePerfil] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [asientosDisponibles, setAsientosDisponibles] = useState([]);
   const [cargandoAsientos, setCargandoAsientos] = useState(false);
@@ -78,7 +80,25 @@ const FlightBookingPage = () => {
       }
     }
     setLoading(false);
-  }, [authLoading, isAuth, router, searchParams]);
+    // Cargar datos de cliente/pasajero del usuario autenticado
+    const cargarPerfilUsuario = async () => {
+      if (isAuth && (user?.id || user?.userId)) {
+        try {
+          const cliente = await obtenerClientePorUserId(user.id || user.userId);
+          setClientePerfil(cliente || null);
+        } catch (err) {
+          console.warn('No se pudo obtener clientePerfil:', err);
+        }
+        try {
+          const pasajero = await obtenerPasajeroPorUserId(user.id || user.userId);
+          setPasajeroPerfil(pasajero || null);
+        } catch (err) {
+          console.warn('No se pudo obtener pasajeroPerfil:', err);
+        }
+      }
+    };
+    cargarPerfilUsuario();
+  }, [authLoading, isAuth, router, searchParams, user?.id, user?.userId]);
 
   // Cargar asientos disponibles cuando cambia la clase seleccionada
   useEffect(() => {
@@ -111,12 +131,13 @@ const FlightBookingPage = () => {
     const nuevosPasajeros = [];
     
     for (let i = 0; i < adultos; i++) {
+      const isFirstAdult = i === 0;
       nuevosPasajeros.push({
         tipo: 'Adulto',
-        nombre: '',
-        apellido: '',
-        numeroDocumento: '',
-        fechaNacimiento: '',
+        nombre: isFirstAdult ? (pasajeroPerfil?.nombre || clientePerfil?.nombre || '') : '',
+        apellido: isFirstAdult ? (pasajeroPerfil?.apellido || clientePerfil?.apellido || '') : '',
+        numeroDocumento: isFirstAdult ? (pasajeroPerfil?.pasaporte || pasajeroPerfil?.numeroDocumento || clientePerfil?.pasaporte || '') : '',
+        fechaNacimiento: isFirstAdult ? (pasajeroPerfil?.fechaNacimiento || clientePerfil?.fechaNacimiento || '') : '',
         numeroAsiento: '',
         esVentana: false
       });
@@ -135,7 +156,26 @@ const FlightBookingPage = () => {
     }
     
     setPasajeros(nuevosPasajeros);
-  }, [adultos, ninos]);
+  }, [adultos, ninos, pasajeroPerfil, clientePerfil]);
+
+  // Si el perfil del pasajero o cliente cambia, prefills los valores en el primer pasajero existente
+  useEffect(() => {
+    if (!pasajeroPerfil && !clientePerfil) return;
+    if (pasajeros.length === 0) return;
+
+    setPasajeros(prev => prev.map((p, i) => {
+      if (i === 0 && p.tipo === 'Adulto') {
+        return {
+          ...p,
+          nombre: p.nombre || pasajeroPerfil?.nombre || clientePerfil?.nombre || '',
+          apellido: p.apellido || pasajeroPerfil?.apellido || clientePerfil?.apellido || '',
+          numeroDocumento: p.numeroDocumento || pasajeroPerfil?.pasaporte || pasajeroPerfil?.numeroDocumento || clientePerfil?.pasaporte || '',
+          fechaNacimiento: p.fechaNacimiento || pasajeroPerfil?.fechaNacimiento || clientePerfil?.fechaNacimiento || ''
+        };
+      }
+      return p;
+    }));
+  }, [pasajeroPerfil, clientePerfil]);
 
   const formatearHora = (hora) => {
     if (!hora) return '--:--';
@@ -144,6 +184,20 @@ const FlightBookingPage = () => {
     }
     const fecha = new Date(hora);
     return fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const isPrefilledField = (index, field) => {
+    if (index !== 0) return false; // Only auto-fill first adult
+    if (!pasajeroPerfil && !clientePerfil) return false;
+    // Map form fields to profile keys
+    if (field === 'numeroDocumento') {
+      return Boolean(pasajeroPerfil?.pasaporte || pasajeroPerfil?.numeroDocumento || clientePerfil?.pasaporte || clientePerfil?.numeroDocumento);
+    }
+    if (field === 'fechaNacimiento') {
+      return Boolean(pasajeroPerfil?.fechaNacimiento || clientePerfil?.fechaNacimiento);
+    }
+    // nombre/apellido
+    return Boolean(pasajeroPerfil?.[field] || clientePerfil?.[field]);
   };
 
   const formatearFecha = (fechaHora) => {
@@ -245,13 +299,12 @@ const FlightBookingPage = () => {
 
           // Obtener pasajero asociado al usuario autenticado
           let pasajeroObj = null;
-          debugger
           try {
             pasajeroObj = await obtenerPasajeroPorUserId(user?.id || user?.userId);
           } catch (err) {
             console.warn('No se pudo obtener pasajero por userId:', err);
           }
-          const idPasajeroObtenido = pasajeroObj?.data.id;
+          const idPasajeroObtenido = pasajeroObj?.id || pasajeroObj?.idPasajero || null;
           if (!idPasajeroObtenido) {
             alert('No se pudo obtener el ID del pasajero asociado a su cuenta. Por favor verifique su perfil.');
             setProcesando(false);
@@ -263,12 +316,12 @@ const FlightBookingPage = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Crear reserva por cada pasajero
-      const reservasPromises = pasajeros.map(pasajero => {
+      const reservasPromises = pasajeros.map((pasajero, index) => {
         const maletaShare = numMaletas > 0 ? Math.floor(numMaletas / pasajeros.length) * 25 : 0;
         const ventanaRecargo = pasajero.esVentana ? 10 : 0;
         const precioPasajero = (claseSeleccionada.precio || 0) + maletaShare + ventanaRecargo;
         return crearReserva({
-          idPasajero: idPasajeroObtenido,
+          idPasajero: (index === 0 && idPasajeroObtenido) ? idPasajeroObtenido : undefined,
           idVuelo: vuelo.id,
           idCliente: idCliente,
           numAsiento: pasajero.numeroAsiento,
@@ -603,6 +656,8 @@ const FlightBookingPage = () => {
                             value={pasajero.nombre}
                             onChange={(e) => handlePasajeroChange(index, 'nombre', e.target.value)}
                             required
+                            readOnly={isPrefilledField(index, 'nombre')}
+                            disabled={isPrefilledField(index, 'nombre')}
                           />
                           <label className="lh-1 text-14 text-light-1">Nombre</label>
                         </div>
@@ -615,6 +670,8 @@ const FlightBookingPage = () => {
                             value={pasajero.apellido}
                             onChange={(e) => handlePasajeroChange(index, 'apellido', e.target.value)}
                             required
+                            readOnly={isPrefilledField(index, 'apellido')}
+                            disabled={isPrefilledField(index, 'apellido')}
                           />
                           <label className="lh-1 text-14 text-light-1">Apellido</label>
                         </div>
@@ -627,6 +684,8 @@ const FlightBookingPage = () => {
                             value={pasajero.numeroDocumento}
                             onChange={(e) => handlePasajeroChange(index, 'numeroDocumento', e.target.value)}
                             required
+                            readOnly={isPrefilledField(index, 'numeroDocumento')}
+                            disabled={isPrefilledField(index, 'numeroDocumento')}
                           />
                           <label className="lh-1 text-14 text-light-1">Número de Documento</label>
                         </div>
@@ -639,6 +698,8 @@ const FlightBookingPage = () => {
                             value={pasajero.fechaNacimiento}
                             onChange={(e) => handlePasajeroChange(index, 'fechaNacimiento', e.target.value)}
                             required
+                            readOnly={isPrefilledField(index, 'fechaNacimiento')}
+                            disabled={isPrefilledField(index, 'fechaNacimiento')}
                           />
                           <label className="lh-1 text-14 text-light-1">Fecha de Nacimiento</label>
                         </div>

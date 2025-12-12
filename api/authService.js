@@ -7,13 +7,40 @@ import { saveToken, saveUser, clearSession } from './sessionUtils';
  * @param {string} password - Contraseña
  * @param {string} role - Rol (Cliente, Admin, Operador) - default: Cliente
  */
-export const register = async (email, password, role = 'Cliente') => {
+export const register = async (email, password, extra = {}, role = 'Cliente') => {
   try {
-    const response = await api.post('/auth/register', { 
-      email, 
+    // Construir payload con campos adicionales permitidos
+    const payload = {
+      email,
       password,
       role
-    });
+    };
+
+    // Mapear campos adicionales a PascalCase esperados por el DTO del backend
+    if (extra && typeof extra === 'object') {
+      const map = {
+        nombre: 'Nombre',
+        Nombre: 'Nombre',
+        apellido: 'Apellido',
+        Apellido: 'Apellido',
+        telefono: 'Telefono',
+        Telefono: 'Telefono',
+        pasaporte: 'Pasaporte',
+        Pasaporte: 'Pasaporte'
+      };
+      Object.keys(extra).forEach(key => {
+        const mapped = map[key];
+        if (mapped && extra[key] != null) payload[mapped] = extra[key];
+      });
+    }
+
+    // Debug: log payload to help debugging registration hangs
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('Register payload:', payload);
+    } catch {}
+
+    const response = await api.post('/auth/register', payload);
     return response.data;
   } catch (error) {
     console.error('Error en register:', error);
@@ -67,7 +94,7 @@ export const logout = async () => {
 // Objeto de compatibilidad con el código existente
 export const authService = {
   login,
-  register: (email, password) => register(email, password, 'Cliente'),
+  register: (email, password, extra) => register(email, password, extra, 'Cliente'),
   logout,
 
   // Obtener perfil del usuario

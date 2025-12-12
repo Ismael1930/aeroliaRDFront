@@ -50,7 +50,8 @@ export const obtenerClienteConReservas = async (id) => {
 export const obtenerClientePorUserId = async (userId) => {
   try {
     const response = await api.get(`/Cliente/user/${userId}`);
-    return response.data;
+    // Normalizar respuesta: si el backend envuelve el objeto en { success, data: {...} }
+    return response.data?.data ?? response.data;
   } catch (error) {
     console.error('Error en obtenerClientePorUserId:', error);
     throw error;

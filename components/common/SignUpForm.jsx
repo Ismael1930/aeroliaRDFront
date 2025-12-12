@@ -10,7 +10,11 @@ const SignUpForm = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    nombre: '',
+    apellido: '',
+    telefono: '',
+    pasaporte: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -47,9 +51,15 @@ const SignUpForm = () => {
 
     try {
       const result = await authService.register(
-        formData.email, 
-        formData.password
-      );
+          formData.email,
+          formData.password,
+          {
+            nombre: formData.nombre,
+            apellido: formData.apellido,
+            telefono: formData.telefono,
+            pasaporte: formData.pasaporte
+          }
+        );
       
       setSuccess(result.message || 'Usuario registrado exitosamente. Redirigiendo...');
       
@@ -121,6 +131,58 @@ const SignUpForm = () => {
             required 
           />
           <label className="lh-1 text-14 text-light-1">Email</label>
+        </div>
+      </div>
+      {/* Nombre y Apellido y Teléfono y Pasaporte */}
+      <div className="col-12">
+        <div className="form-input ">
+          <input
+            type="text"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            placeholder=""
+          />
+          <label className="lh-1 text-14 text-light-1">Nombre</label>
+        </div>
+      </div>
+
+      <div className="col-12">
+        <div className="form-input ">
+          <input
+            type="text"
+            name="apellido"
+            value={formData.apellido}
+            onChange={handleChange}
+            placeholder=""
+          />
+          <label className="lh-1 text-14 text-light-1">Apellido</label>
+        </div>
+      </div>
+
+      <div className="col-12">
+        <div className="form-input ">
+          <input
+            type="tel"
+            name="telefono"
+            value={formData.telefono}
+            onChange={handleChange}
+            placeholder=""
+          />
+          <label className="lh-1 text-14 text-light-1">Teléfono</label>
+        </div>
+      </div>
+
+      <div className="col-12">
+        <div className="form-input ">
+          <input
+            type="text"
+            name="pasaporte"
+            value={formData.pasaporte}
+            onChange={handleChange}
+            placeholder=""
+          />
+          <label className="lh-1 text-14 text-light-1">Pasaporte</label>
         </div>
       </div>
       {/* End .col */}

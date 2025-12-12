@@ -34,7 +34,8 @@ export const obtenerPasajeroPorId = async (id) => {
 export const obtenerPasajeroPorUserId = async (userId) => {
   try {
     const response = await api.get(`/pasajero/user/${userId}`);
-    return response.data;
+    // Normalizar respuesta: si el backend envuelve el objeto en { success, data: {...} }
+    return response.data?.data ?? response.data;
   } catch (error) {
     console.error('Error en obtenerPasajeroPorUserId:', error);
     throw error;
