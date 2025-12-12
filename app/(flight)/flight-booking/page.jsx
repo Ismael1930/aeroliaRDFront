@@ -116,7 +116,8 @@ const FlightBookingPage = () => {
         apellido: '',
         numeroDocumento: '',
         fechaNacimiento: '',
-        numeroAsiento: ''
+        numeroAsiento: '',
+        esVentana: false
       });
     }
     
@@ -127,7 +128,8 @@ const FlightBookingPage = () => {
         apellido: '',
         numeroDocumento: '',
         fechaNacimiento: '',
-        numeroAsiento: ''
+        numeroAsiento: '',
+        esVentana: false
       });
     }
     
@@ -158,7 +160,9 @@ const FlightBookingPage = () => {
     if (!claseSeleccionada) return 0;
     const precioVuelo = claseSeleccionada.precio * (adultos + ninos);
     const precioMaletas = numMaletas * 25; // $25 por maleta
-    return precioVuelo + precioMaletas;
+    // Recargo por asientos de ventana: $10 por asiento de ventana seleccionado
+    const recargoVentana = pasajeros.reduce((acc, p) => acc + (p?.esVentana ? 10 : 0), 0);
+    return precioVuelo + precioMaletas + recargoVentana;
   };
 
   const calcularRecargoPorClase = () => {
@@ -171,6 +175,30 @@ const FlightBookingPage = () => {
   const handlePasajeroChange = (index, field, value) => {
     const nuevosPasajeros = [...pasajeros];
     nuevosPasajeros[index][field] = value;
+
+    // Si el campo es el numeroAsiento, determinar si es asiento de ventana
+    if (field === 'numeroAsiento') {
+      const numero = value;
+      const asientoObj = asientosDisponibles.find(a => (a.numero || a.numeroAsiento || a) == numero);
+      let esVentana = false;
+      if (asientoObj) {
+        if (typeof asientoObj.esVentana === 'boolean') {
+          esVentana = asientoObj.esVentana;
+        } else if (asientoObj.columna) {
+          const col = String(asientoObj.columna).toUpperCase();
+          // Asumir columnas A y la última (por ejemplo F/K/L) son ventana. Verifica A y F y K y L.
+          const ventanaCols = ['A','F','K','L'];
+          esVentana = ventanaCols.includes(col);
+        }
+      } else {
+        // Si no existe objeto de asiento, intentar inferir por letra final del número (ej. 12A)
+        const letra = String(numero).slice(-1).toUpperCase();
+        const ventanaCols = ['A','F','K','L'];
+        if (ventanaCols.includes(letra)) esVentana = true;
+      }
+      nuevosPasajeros[index].esVentana = esVentana;
+    }
+
     setPasajeros(nuevosPasajeros);
   };
 
@@ -210,6 +238,9 @@ const FlightBookingPage = () => {
 
       // Crear reserva por cada pasajero
       const reservasPromises = pasajeros.map(pasajero => {
+        const maletaShare = numMaletas > 0 ? Math.floor(numMaletas / pasajeros.length) * 25 : 0;
+        const ventanaRecargo = pasajero.esVentana ? 10 : 0;
+        const precioPasajero = (claseSeleccionada.precio || 0) + maletaShare + ventanaRecargo;
         return crearReserva({
           idPasajero: 1, // Se usará el ID por defecto o el backend debe crear el pasajero
           idVuelo: vuelo.id,
@@ -217,7 +248,7 @@ const FlightBookingPage = () => {
           numAsiento: pasajero.numeroAsiento,
           clase: claseSeleccionada.clase,
           metodoPago: "Tarjeta de Crédito",
-          precioTotal: claseSeleccionada.precio + (numMaletas > 0 ? Math.floor(numMaletas / pasajeros.length) * 25 : 0)
+          precioTotal: precioPasajero
         });
       });
 
@@ -612,6 +643,20 @@ const FlightBookingPage = () => {
                             {asientosDisponibles.map((asiento) => {
                               const numeroAsiento = asiento.numero || asiento.numeroAsiento || asiento;
                               const yaSeleccionado = pasajeros.some((p, i) => i !== index && p.numeroAsiento === numeroAsiento);
+                              // Determinar si es asiento de ventana
+                              let esVentana = false;
+                              if (asiento && typeof asiento === 'object') {
+                                if (typeof asiento.esVentana === 'boolean') esVentana = asiento.esVentana;
+                                else if (asiento.columna) {
+                                  const col = String(asiento.columna).toUpperCase();
+                                  const ventanaCols = ['A','F','K','L'];
+                                  esVentana = ventanaCols.includes(col);
+                                }
+                              } else {
+                                const letra = String(numeroAsiento).slice(-1).toUpperCase();
+                                const ventanaCols = ['A','F','K','L'];
+                                esVentana = ventanaCols.includes(letra);
+                              }
                               return (
                                 <option 
                                   key={numeroAsiento} 
@@ -619,6 +664,7 @@ const FlightBookingPage = () => {
                                   disabled={yaSeleccionado}
                                 >
                                   {numeroAsiento} - Fila {asiento.fila || ''} {asiento.columna || ''}
+                                  {esVentana ? ' (Ventana)' : ''}
                                   {yaSeleccionado && ' (Ya seleccionado)'}
                                 </option>
                               );
@@ -762,6 +808,15 @@ const FlightBookingPage = () => {
                         </div>
                       )}
 
+                      {pasajeros.some(p => p.esVentana) && (
+                        <div className="col-12">
+                          <div className="d-flex items-center justify-between py-10">
+                            <div className="text-15">Recargo Ventana × {pasajeros.filter(p => p.esVentana).length}</div>
+                            <div className="text-15 fw-500">US${(pasajeros.filter(p => p.esVentana).length * 10).toFixed(2)}</div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="col-12">
                         <div className="border-top-light my-10"></div>
                       </div>
@@ -791,6 +846,9 @@ const FlightBookingPage = () => {
                           <div className="text-14 text-light-1">• {adultos} Adulto{adultos > 1 ? 's' : ''}</div>
                           {ninos > 0 && <div className="text-14 text-light-1">• {ninos} Niño{ninos > 1 ? 's' : ''}</div>}
                           {numMaletas > 0 && <div className="text-14 text-light-1">• {numMaletas} Maleta{numMaletas > 1 ? 's' : ''}</div>}
+                          {pasajeros.some(p => p.esVentana) && (
+                            <div className="text-14 text-light-1">• {pasajeros.filter(p => p.esVentana).length} Asiento(s) Ventana</div>
+                          )}
                         </div>
                       </div>
                     </>
@@ -899,7 +957,7 @@ const FlightBookingPage = () => {
                     <div className="text-14 text-light-1">{pasajero.tipo}</div>
                   </div>
                   <div className="text-end">
-                    <div className="text-15 fw-500 text-blue-1">Asiento {pasajero.numeroAsiento}</div>
+                    <div className="text-15 fw-500 text-blue-1">Asiento {pasajero.numeroAsiento}{pasajero.esVentana ? ' (Ventana)' : ''}</div>
                   </div>
                 </div>
               ))}
@@ -925,6 +983,13 @@ const FlightBookingPage = () => {
                 <div className="d-flex justify-between py-10">
                   <div className="text-15">Maletas × {numMaletas}</div>
                   <div className="text-15 fw-500">US${(numMaletas * 25).toFixed(2)}</div>
+                </div>
+              )}
+
+              {datosReserva?.pasajeros?.some(p => p.esVentana) && (
+                <div className="d-flex justify-between py-10">
+                  <div className="text-15">Recargo Ventana × {datosReserva.pasajeros.filter(p => p.esVentana).length}</div>
+                  <div className="text-15 fw-500">US${(datosReserva.pasajeros.filter(p => p.esVentana).length * 10).toFixed(2)}</div>
                 </div>
               )}
               
