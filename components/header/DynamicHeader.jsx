@@ -53,7 +53,7 @@ const DynamicHeader = () => {
   }
 
   // Para clientes autenticados, mostrar header según la página
-  return isHome10 ? <HeaderClienteHome /> : <HeaderCliente />;
+  return <HeaderClienteHome />;
 };
 
 export default DynamicHeader;

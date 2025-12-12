@@ -28,6 +28,20 @@ export const obtenerPasajeroPorId = async (id) => {
 };
 
 /**
+ * Obtener pasajero por UserId
+ * @param {string} userId - ID del usuario
+ */
+export const obtenerPasajeroPorUserId = async (userId) => {
+  try {
+    const response = await api.get(`/pasajero/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error en obtenerPasajeroPorUserId:', error);
+    throw error;
+  }
+};
+
+/**
  * Crear un nuevo pasajero
  * @param {Object} pasajeroData - Datos del pasajero
  * @param {string} pasajeroData.nombre - Nombre del pasajero

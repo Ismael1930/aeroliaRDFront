@@ -129,6 +129,10 @@ const MisReservasPage = () => {
   const formatearHora = (fecha) => {
     if (!fecha) return 'N/A';
     try {
+      // Si es una cadena de tiempo como "08:15:00" o "08:15", devolver los primeros 5 caracteres
+      if (typeof fecha === 'string' && fecha.includes(':')) {
+        return fecha.substring(0, 5);
+      }
       return new Date(fecha).toLocaleTimeString('es-ES', {
         hour: '2-digit',
         minute: '2-digit'
@@ -182,15 +186,16 @@ const MisReservasPage = () => {
           ) : (
             <div className="row y-gap-30">
               <div className="col-12">
-                <div className="overflow-scroll scroll-bar-1">
-                  <table className="table-3 -border-bottom col-12">
+                <div style={{ overflowX: 'auto', width: '100%' }}>
+                  <table className="table-3 -border-bottom" style={{ width: '100%', minWidth: '1200px' }}>
                     <thead className="bg-light-2">
                       <tr>
                         <th>Código</th>
                         <th>Vuelo</th>
                         <th>Origen - Destino</th>
                         <th>Fecha Salida</th>
-                        <th>Hora</th>
+                        <th>Hora Salida</th>
+                        <th>Hora Llegada</th>
                         <th>Asiento</th>
                         <th>Clase</th>
                         <th>Estado</th>
@@ -230,7 +235,10 @@ const MisReservasPage = () => {
                             {formatearFecha(reserva.fechaVuelo || reserva.vuelo?.fechaSalida || reserva.fechaSalida)}
                           </td>
                           <td>
-                            {formatearHora(reserva.fechaVuelo || reserva.vuelo?.fechaSalida || reserva.fechaSalida)}
+                            {formatearHora(reserva.horaSalida || reserva.vuelo?.horaSalida || reserva.horaSalida || reserva.fechaSalida)}
+                          </td>
+                          <td>
+                            {formatearHora(reserva.horaLlegada || reserva.vuelo?.horaLlegada || reserva.horaLlegada || reserva.fechaLlegada)}
                           </td>
                           <td className="text-center">
                             <span className="py-10 px-15 rounded-4 text-12 fw-500 bg-blue-1-05 text-blue-1">

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import MainMenu from "../MainMenu";
 import MobileMenu from "../MobileMenu";
 
 const HeaderCliente = () => {
@@ -70,45 +69,6 @@ const HeaderCliente = () => {
                 {/* End header-menu */}
 
                 <div className="row items-center x-gap-5 y-gap-20 pl-20 lg:d-none">
-                  <div className="col-auto">
-                    <Link 
-                      href="/mis-reservas"
-                      className="button -blue-1-05 size-50 rounded-22 flex-center"
-                      title="Mis Reservas"
-                    >
-                      <Image
-                        width={20}
-                        height={20}
-                        src="/img/dashboard/sidebar/booking.svg"
-                        alt="reservas"
-                      />
-                    </Link>
-                  </div>
-                  {/* End mis reservas */}
-
-                  <div className="col-auto">
-                    <button className="button -blue-1-05 size-50 rounded-22 flex-center">
-                      <Image
-                        width={20}
-                        height={20}
-                        src="/img/dashboard/sidebar/compass.svg"
-                        alt="notification"
-                      />
-                    </button>
-                  </div>
-                  {/* End notification */}
-
-                  <div className="col-auto">
-                    <Link href="/dashboard/db-settings" className="button -blue-1-05 size-50 rounded-22 flex-center">
-                      <Image
-                        width={20}
-                        height={20}
-                        src="/img/dashboard/sidebar/gear.svg"
-                        alt="settings"
-                      />
-                    </Link>
-                  </div>
-                  {/* End settings */}
 
                   <div className="col-auto">
                     <button 

@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import CallToActions from "@/components/common/CallToActions";
 import DynamicHeader from "@/components/header/DynamicHeader";
 import DefaultFooter from "@/components/footer/default";
 import { useAuth } from "@/context/AuthContext";
 import { useSearch } from "@/context/SearchContext";
 import { crearReserva } from "@/api/reservaService";
 import { obtenerAsientosDisponibles } from "@/api/vueloService";
+import { obtenerClientePorUserId } from "@/api/clienteService";
+import { obtenerPasajeroPorUserId } from "@/api/pasajeroService";
 
 const FlightBookingPage = () => {
   const router = useRouter();
@@ -232,6 +233,31 @@ const FlightBookingPage = () => {
     }
 
     setProcesando(true);
+          // Obtener el cliente basado en el userId del usuario autenticado
+          const cliente = await obtenerClientePorUserId(user?.id || user?.userId);
+          const idCliente = cliente?.id || cliente?.idCliente;
+      
+          if (!idCliente) {
+            alert('No se pudo obtener la información del cliente. Por favor intente nuevamente.');
+            setProcesando(false);
+            return;
+          }
+
+          // Obtener pasajero asociado al usuario autenticado
+          let pasajeroObj = null;
+          debugger
+          try {
+            pasajeroObj = await obtenerPasajeroPorUserId(user?.id || user?.userId);
+          } catch (err) {
+            console.warn('No se pudo obtener pasajero por userId:', err);
+          }
+          const idPasajeroObtenido = pasajeroObj?.data.id;
+          if (!idPasajeroObtenido) {
+            alert('No se pudo obtener el ID del pasajero asociado a su cuenta. Por favor verifique su perfil.');
+            setProcesando(false);
+            return;
+          }
+
     try {
       // Simular procesamiento de pago
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -242,9 +268,9 @@ const FlightBookingPage = () => {
         const ventanaRecargo = pasajero.esVentana ? 10 : 0;
         const precioPasajero = (claseSeleccionada.precio || 0) + maletaShare + ventanaRecargo;
         return crearReserva({
-          idPasajero: 1, // Se usará el ID por defecto o el backend debe crear el pasajero
+          idPasajero: idPasajeroObtenido,
           idVuelo: vuelo.id,
-          idCliente: user?.id || 1,
+          idCliente: idCliente,
           numAsiento: pasajero.numeroAsiento,
           clase: claseSeleccionada.clase,
           metodoPago: "Tarjeta de Crédito",

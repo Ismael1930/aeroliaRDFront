@@ -94,6 +94,38 @@ const GestionVuelos = () => {
     }
   };
 
+  const calcularDuracionDisplay = () => {
+    if (!formulario.horaSalida || !formulario.horaLlegada) return '';
+    try {
+      const [horaS, minS] = formulario.horaSalida.split(':').map(Number);
+      const [horaL, minL] = formulario.horaLlegada.split(':').map(Number);
+      const minutosS = horaS * 60 + minS;
+      const minutosL = horaL * 60 + minL;
+      let minutoDif = minutosL - minutosS;
+      if (minutoDif < 0) minutoDif += 24 * 60; // Si llega al día siguiente
+      const horas = Math.floor(minutoDif / 60);
+      const minutos = minutoDif % 60;
+      return `${horas}h ${minutos}m`;
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const calcularDuracionMinutos = () => {
+    if (!formulario.horaSalida || !formulario.horaLlegada) return null;
+    try {
+      const [horaS, minS] = formulario.horaSalida.split(':').map(Number);
+      const [horaL, minL] = formulario.horaLlegada.split(':').map(Number);
+      const minutosS = horaS * 60 + minS;
+      const minutosL = horaL * 60 + minL;
+      let minutoDif = minutosL - minutosS;
+      if (minutoDif < 0) minutoDif += 24 * 60; // Si llega al día siguiente
+      return minutoDif;
+    } catch (e) {
+      return null;
+    }
+  };
+
   const abrirModalNuevo = () => {
     setModoEdicion(false);
     setFormulario({
@@ -135,15 +167,17 @@ const GestionVuelos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Calcular duración en minutos automáticamente
+      const duracionMinutos = calcularDuracionMinutos();
+      
       // Convertir y preparar los datos para el backend
       const datosVuelo = {
         ...formulario,
+        duracion: duracionMinutos, // Enviar duración en minutos como número
         // Convertir ID de aeronave a número (o null si está vacío)
         idAeronave: formulario.idAeronave ? parseInt(formulario.idAeronave) : null,
         // Convertir precio base a número
         precioBase: parseFloat(formulario.precioBase),
-        // Convertir duración a número si existe
-        duracion: formulario.duracion ? parseFloat(formulario.duracion) : null,
         // Convertir horas al formato TimeSpan de .NET (HH:mm:ss)
         horaSalida: formulario.horaSalida.length === 5 
           ? `${formulario.horaSalida}:00` 
@@ -580,11 +614,11 @@ const GestionVuelos = () => {
                   <div className="form-input">
                     <input
                       type="text"
-                      value={formulario.duracion}
-                      onChange={(e) => setFormulario({...formulario, duracion: e.target.value})}
-                      placeholder="2h 30m"
+                      value={calcularDuracionDisplay()}
+                      readOnly
+                      placeholder="Calculada automáticamente"
                     />
-                    <label className="lh-1 text-14 text-light-1">Duración</label>
+                    <label className="lh-1 text-14 text-light-1">Duración (Automática)</label>
                   </div>
                 </div>
 
