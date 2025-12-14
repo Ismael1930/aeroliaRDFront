@@ -5,8 +5,10 @@ import api from './index';
  * @param {Object} filtros - Filtros de búsqueda
  * @param {string} filtros.origen - Código del aeropuerto de origen (ej: "SDQ")
  * @param {string} filtros.destino - Código del aeropuerto de destino (ej: "POP")
- * @param {string} filtros.fechaSalida - Fecha de salida (formato: YYYY-MM-DD)
- * @param {string} filtros.fechaRegreso - Fecha de regreso (formato: YYYY-MM-DD)
+ * @param {string} filtros.fechaSalidaInicio - Fecha de salida inicio (formato: YYYY-MM-DD)
+ * @param {string} filtros.fechaSalidaFin - Fecha de salida fin (formato: YYYY-MM-DD)
+ * @param {string} filtros.fechaRegresoInicio - Fecha de regreso inicio (formato: YYYY-MM-DD)
+ * @param {string} filtros.fechaRegresoFin - Fecha de regreso fin (formato: YYYY-MM-DD)
  * @param {number} filtros.adultos - Número de adultos (default: 2)
  * @param {number} filtros.ninos - Número de niños (default: 1)
  * @param {string} filtros.clase - Clase ("Economica", "Primera")

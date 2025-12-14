@@ -18,9 +18,9 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
   
   const [origen, setOrigen] = useState(searchData.origen);
   const [destino, setDestino] = useState(searchData.destino);
-  const [fechaSalidaInicio, setFechaSalidaInicio] = useState(searchData.fechaSalida);
+  const [fechaSalidaInicio, setFechaSalidaInicio] = useState(searchData.fechaSalidaInicio || searchData.fechaSalida || null);
   const [fechaSalidaFin, setFechaSalidaFin] = useState(null);
-  const [fechaRegresoInicio, setFechaRegresoInicio] = useState(searchData.fechaRegreso);
+  const [fechaRegresoInicio, setFechaRegresoInicio] = useState(searchData.fechaRegresoInicio || searchData.fechaRegreso || null);
   const [fechaRegresoFin, setFechaRegresoFin] = useState(null);
   const [pasajeros, setPasajeros] = useState(searchData.pasajeros);
   const [loading, setLoading] = useState(false);
@@ -30,8 +30,10 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
   useEffect(() => {
     setOrigen(searchData.origen || null);
     setDestino(searchData.destino || null);
-    setFechaSalidaInicio(searchData.fechaSalida || null);
-    setFechaRegresoInicio(searchData.fechaRegreso || null);
+    setFechaSalidaInicio(searchData.fechaSalidaInicio || searchData.fechaSalida || null);
+    setFechaSalidaFin(searchData.fechaSalidaFin || null);
+    setFechaRegresoInicio(searchData.fechaRegresoInicio || searchData.fechaRegreso || null);
+    setFechaRegresoFin(searchData.fechaRegresoFin || null);
     setPasajeros(searchData.pasajeros || { adultos: 1, ninos: 0 });
   }, [searchData]);
 
@@ -54,10 +56,14 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
         return;
       }
 
-      // Guardar datos en el contexto antes de buscar
+      // Guardar datos en el contexto antes de buscar (guardar ranges)
       updateSearchData({
         origen,
         destino,
+        fechaSalidaInicio,
+        fechaSalidaFin,
+        fechaRegresoInicio,
+        fechaRegresoFin,
         fechaSalida: fechaSalidaInicio,
         fechaRegreso: fechaRegresoInicio,
         pasajeros,
@@ -71,13 +77,14 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
       
       if (origen) filtros.origen = origen.codigo;
       if (destino) filtros.destino = destino.codigo;
-      if (fechaSalidaInicio) filtros.fechaSalida = fechaSalidaInicio;
-      if (fechaRegresoInicio) filtros.fechaRegreso = fechaRegresoInicio;
+      if (fechaSalidaInicio) filtros.fechaSalidaInicio = fechaSalidaInicio;
+      if (fechaSalidaFin) filtros.fechaSalidaFin = fechaSalidaFin;
+      if (fechaRegresoInicio) filtros.fechaRegresoInicio = fechaRegresoInicio;
+      if (fechaRegresoFin) filtros.fechaRegresoFin = fechaRegresoFin;
       
       // Siempre incluir estos campos
       filtros.adultos = pasajeros.adultos;
       filtros.ninos = pasajeros.ninos;
-      filtros.habitaciones = pasajeros.habitaciones;
       filtros.tipoViaje = tipoViaje === "Ida y Vuelta" ? "IdaYVuelta" : tipoViaje === "Solo Ida" ? "SoloIda" : "IdaYVuelta";
       filtros.clase = claseSeleccionada;
 
