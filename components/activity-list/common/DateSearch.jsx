@@ -5,9 +5,10 @@ import React, { useState } from "react";
 import DatePicker, { DateObject } from "react-multi-date-picker";
 
 const DateSearch = () => {
+  const hoy = new DateObject();
   const [dates, setDates] = useState([
-    new DateObject().setDay(15),
-    new DateObject().setDay(14).add(1, "month"),
+    hoy,
+    new DateObject().add(7, "days"),
   ]);
 
   return (
@@ -21,6 +22,7 @@ const DateSearch = () => {
         offsetY={10}
         range
         rangeHover
+        minDate={hoy}
         format="MMMM DD"
       />
     </div>

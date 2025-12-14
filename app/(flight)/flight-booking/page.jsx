@@ -315,23 +315,28 @@ const FlightBookingPage = () => {
       // Simular procesamiento de pago
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Crear reserva por cada pasajero
-      const reservasPromises = pasajeros.map((pasajero, index) => {
-        const maletaShare = numMaletas > 0 ? Math.floor(numMaletas / pasajeros.length) * 25 : 0;
-        const ventanaRecargo = pasajero.esVentana ? 10 : 0;
-        const precioPasajero = (claseSeleccionada.precio || 0) + maletaShare + ventanaRecargo;
-        return crearReserva({
-          idPasajero: (index === 0 && idPasajeroObtenido) ? idPasajeroObtenido : undefined,
-          idVuelo: vuelo.id,
-          idCliente: idCliente,
-          numAsiento: pasajero.numeroAsiento,
-          clase: claseSeleccionada.clase,
-          metodoPago: "Tarjeta de Crédito",
-          precioTotal: precioPasajero
-        });
+      // Crear una sola reserva: solo enviamos la reserva para el primer pasajero
+      const primerPasajero = pasajeros[0];
+      // Usar el precio total calculado para el booking
+      const precioTotalReserva = calcularPrecioTotal();
+      console.debug('Creando UNA sola reserva para el primer pasajero', {
+        idPasajero: idPasajeroObtenido,
+        idVuelo: vuelo.id,
+        idCliente: idCliente,
+        numAsiento: primerPasajero?.numeroAsiento,
+        clase: claseSeleccionada?.clase,
+        precioTotal: precioTotalReserva
       });
 
-      const resultados = await Promise.all(reservasPromises);
+      await crearReserva({
+        idPasajero: idPasajeroObtenido || undefined,
+        idVuelo: vuelo.id,
+        idCliente: idCliente,
+        numAsiento: primerPasajero?.numeroAsiento,
+        clase: claseSeleccionada.clase,
+        metodoPago: "Tarjeta de Crédito",
+        precioTotal: precioTotalReserva
+      });
       
       // Generar código de reserva (simulado)
       const codigoReserva = 'RES' + Date.now().toString().slice(-8);

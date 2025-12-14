@@ -5,14 +5,13 @@ import React, { useState, useEffect } from "react";
 import DatePicker, { DateObject } from "react-multi-date-picker";
 
 const DateSearch = ({ onChange, isSingle = false }) => {
-  const [dates, setDates] = useState(
-    isSingle 
-      ? new DateObject().setDay(5)
-      : [
-          new DateObject().setDay(5),
-          new DateObject().setDay(14).add(1, "month"),
-        ]
-  );
+  // Definir la fecha mínima (hoy) y asegurar fechas iniciales >= hoy
+  const hoy = new DateObject();
+  const initialDates = isSingle
+    ? hoy
+    : [hoy, new DateObject().add(7, "days")];
+
+  const [dates, setDates] = useState(initialDates);
 
   useEffect(() => {
     if (onChange) {
@@ -40,6 +39,7 @@ const DateSearch = ({ onChange, isSingle = false }) => {
         offsetY={10}
         range={!isSingle}
         rangeHover={!isSingle}
+        minDate={hoy}
         format="MMMM DD"
       />
     </div>

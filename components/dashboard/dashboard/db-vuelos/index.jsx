@@ -274,7 +274,7 @@ const GestionVuelos = () => {
                 <div className="col-12">
                   <input
                     type="text"
-                    placeholder="Buscar por número de vuelo, origen o destino..."
+                    placeholder="Buscar por número de vuelo"
                     className="form-control"
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
