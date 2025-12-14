@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from "react";
 const counters = [
-  { name: "Adultos", defaultValue: 2 },
-  { name: "Niños", defaultValue: 1 },
+  { name: "Adultos", defaultValue: 1 },
+  { name: "Niños", defaultValue: 0 },
 ];
 
 const Counter = ({ name, defaultValue, onCounterChange }) => {
@@ -62,26 +62,27 @@ const Counter = ({ name, defaultValue, onCounterChange }) => {
 
 const GuestSearch = ({ onChange, initialValue }) => {
   const [guestCounts, setGuestCounts] = useState({
-    Adultos: initialValue?.adultos || 2,
-    Niños: initialValue?.ninos || 1,
+    Adultos: initialValue?.adultos || 1,
+    Niños: initialValue?.ninos || 0,
   });
 
   // Actualizar cuando cambie el valor inicial
   useEffect(() => {
     if (initialValue) {
-      setGuestCounts({
-        Adultos: initialValue.adultos || 2,
-        Niños: initialValue.ninos || 1,
-      });
+      const newAdultos = initialValue.adultos || 1;
+      const newNinos = initialValue.ninos || 0;
+      if (guestCounts.Adultos !== newAdultos || guestCounts.Niños !== newNinos) {
+        setGuestCounts({ Adultos: newAdultos, Niños: newNinos });
+      }
     }
-  }, [initialValue]);
+  }, [initialValue, guestCounts]);
 
-  // Notificar valores iniciales cuando el componente se monta
+  // Notificar valores de viajeros cuando el componente se monta o cambian
   useEffect(() => {
     if (onChange) {
       onChange({ adultos: guestCounts.Adultos, ninos: guestCounts.Niños });
     }
-  }, []);
+  }, [guestCounts, onChange]);
 
   const handleCounterChange = (name, value) => {
     const newCounts = { ...guestCounts, [name]: value };

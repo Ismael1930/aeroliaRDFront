@@ -3,8 +3,8 @@
 
 import React, { useState } from "react";
 const counters = [
-  { name: "Adultos", defaultValue: 2 },
-  { name: "Niños", defaultValue: 1 },
+  { name: "Adultos", defaultValue: 1 },
+  { name: "Niños", defaultValue: 0 },
   { name: "Habitaciones", defaultValue: 1 },
 ];
 
@@ -63,9 +63,8 @@ const Counter = ({ name, defaultValue, onCounterChange }) => {
 
 const GuestSearch = () => {
   const [guestCounts, setGuestCounts] = useState({
-    Adultos: 2,
-    Niños: 1,
-    Habitaciones: 1,
+    Adultos: 1,
+    Niños: 0,
   });
   const handleCounterChange = (name, value) => {
     setGuestCounts((prevState) => ({ ...prevState, [name]: value }));
@@ -83,8 +82,6 @@ const GuestSearch = () => {
           <span className="js-count-adult">{guestCounts.Adultos}</span> adultos -{" "}
           <span className="js-count-child">{guestCounts.Niños}</span>{" "}
           niños - <span className="js-count-room">{guestCounts.Habitaciones}</span>{" "}
-          habitación
-          habitación
         </div>
       </div>
       {/* End guest */}

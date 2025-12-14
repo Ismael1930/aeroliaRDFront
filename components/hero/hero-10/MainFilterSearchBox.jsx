@@ -32,7 +32,7 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
     setDestino(searchData.destino || null);
     setFechaSalidaInicio(searchData.fechaSalida || null);
     setFechaRegresoInicio(searchData.fechaRegreso || null);
-    setPasajeros(searchData.pasajeros || { adultos: 2, ninos: 1 });
+    setPasajeros(searchData.pasajeros || { adultos: 1, ninos: 0 });
   }, [searchData]);
 
   // Determinar el texto del botón

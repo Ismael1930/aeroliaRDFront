@@ -89,8 +89,8 @@ const filtros = {
   destino: 'POP',
   fechaSalida: '2024-01-15',
   fechaRegreso: '2024-01-20',
-  adultos: 2,
-  ninos: 1,
+  adultos: 1,
+  ninos: 0,
   clase: 'Economica'
 };
 

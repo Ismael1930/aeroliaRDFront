@@ -6,7 +6,7 @@ const SearchContext = createContext();
 
 const defaultSearchData = {
   maletas: 0,
-  pasajeros: { adultos: 2, ninos: 1 },
+  pasajeros: { adultos: 1, ninos: 0 },
   origen: null,
   destino: null,
   fechaSalida: null,

@@ -100,6 +100,19 @@ const FlightBookingPage = () => {
     cargarPerfilUsuario();
   }, [authLoading, isAuth, router, searchParams, user?.id, user?.userId]);
 
+  // Fecha de hoy en formato YYYY-MM-DD para input type="date"
+  const hoyInput = new Date().toISOString().split('T')[0];
+
+  const formatDateForInput = (dateValue) => {
+    if (!dateValue) return null;
+    try {
+      const d = new Date(dateValue);
+      return d.toISOString().split('T')[0];
+    } catch (err) {
+      return null;
+    }
+  };
+
   // Cargar asientos disponibles cuando cambia la clase seleccionada
   useEffect(() => {
     const cargarAsientos = async () => {
@@ -130,6 +143,7 @@ const FlightBookingPage = () => {
     const totalPasajeros = adultos + ninos;
     const nuevosPasajeros = [];
     
+    const perfilFecha = formatDateForInput(pasajeroPerfil?.fechaNacimiento || clientePerfil?.fechaNacimiento);
     for (let i = 0; i < adultos; i++) {
       const isFirstAdult = i === 0;
       nuevosPasajeros.push({
@@ -137,7 +151,7 @@ const FlightBookingPage = () => {
         nombre: isFirstAdult ? (pasajeroPerfil?.nombre || clientePerfil?.nombre || '') : '',
         apellido: isFirstAdult ? (pasajeroPerfil?.apellido || clientePerfil?.apellido || '') : '',
         numeroDocumento: isFirstAdult ? (pasajeroPerfil?.pasaporte || pasajeroPerfil?.numeroDocumento || clientePerfil?.pasaporte || '') : '',
-        fechaNacimiento: isFirstAdult ? (pasajeroPerfil?.fechaNacimiento || clientePerfil?.fechaNacimiento || '') : '',
+        fechaNacimiento: isFirstAdult ? (perfilFecha || hoyInput) : hoyInput,
         numeroAsiento: '',
         esVentana: false
       });
@@ -149,7 +163,7 @@ const FlightBookingPage = () => {
         nombre: '',
         apellido: '',
         numeroDocumento: '',
-        fechaNacimiento: '',
+        fechaNacimiento: hoyInput,
         numeroAsiento: '',
         esVentana: false
       });
@@ -163,6 +177,7 @@ const FlightBookingPage = () => {
     if (!pasajeroPerfil && !clientePerfil) return;
     if (pasajeros.length === 0) return;
 
+    const perfilFecha = formatDateForInput(pasajeroPerfil?.fechaNacimiento || clientePerfil?.fechaNacimiento);
     setPasajeros(prev => prev.map((p, i) => {
       if (i === 0 && p.tipo === 'Adulto') {
         return {
@@ -170,7 +185,7 @@ const FlightBookingPage = () => {
           nombre: p.nombre || pasajeroPerfil?.nombre || clientePerfil?.nombre || '',
           apellido: p.apellido || pasajeroPerfil?.apellido || clientePerfil?.apellido || '',
           numeroDocumento: p.numeroDocumento || pasajeroPerfil?.pasaporte || pasajeroPerfil?.numeroDocumento || clientePerfil?.pasaporte || '',
-          fechaNacimiento: p.fechaNacimiento || pasajeroPerfil?.fechaNacimiento || clientePerfil?.fechaNacimiento || ''
+          fechaNacimiento: p.fechaNacimiento || perfilFecha || hoyInput
         };
       }
       return p;
@@ -705,6 +720,7 @@ const FlightBookingPage = () => {
                             required
                             readOnly={isPrefilledField(index, 'fechaNacimiento')}
                             disabled={isPrefilledField(index, 'fechaNacimiento')}
+                            max={hoyInput}
                           />
                           <label className="lh-1 text-14 text-light-1">Fecha de Nacimiento</label>
                         </div>
