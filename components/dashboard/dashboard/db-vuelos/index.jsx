@@ -506,6 +506,7 @@ const GestionVuelos = () => {
                 <div className="col-md-6">
                   <label className="text-14 fw-500 mb-10 d-block">Aeronave</label>
                   <select
+                  key={vuelos.id}
                     className="form-select"
                     value={formulario.idAeronave}
                     onChange={(e) => setFormulario({...formulario, idAeronave: e.target.value})}
