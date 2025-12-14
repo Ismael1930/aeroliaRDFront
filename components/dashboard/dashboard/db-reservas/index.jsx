@@ -11,6 +11,7 @@ const GestionReservas = () => {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [numeroVueloFiltro, setNumeroVueloFiltro] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [itemsPorPagina] = useState(10);
   const [selectedReserva, setSelectedReserva] = useState(null);
@@ -36,10 +37,16 @@ const GestionReservas = () => {
     }
   };
 
+  // Filtrado por número de vuelo (sensible a mayúsculas/minúsculas)
+  const reservasFiltradas = reservas.filter(r => {
+    const numero = (r.NumeroVuelo || r.numeroVuelo || '').toString();
+    return numero.toLowerCase().includes((numeroVueloFiltro || '').toLowerCase());
+  });
+
   // Paginación
   const indexOfLast = paginaActual * itemsPorPagina;
   const indexOfFirst = indexOfLast - itemsPorPagina;
-  const reservasPaginadas = reservas.slice(indexOfFirst, indexOfLast);
+  const reservasPaginadas = reservasFiltradas.slice(indexOfFirst, indexOfLast);
 
   const openModal = (reserva) => {
     setSelectedReserva(reserva);
@@ -75,6 +82,25 @@ const GestionReservas = () => {
             </div>
 
             <div className="py-30 px-30 rounded-4 bg-white shadow-3">
+              {/* Filtro por Número de Vuelo */}
+              <div className="row y-gap-20 mb-20">
+                <div className="col-12">
+                  <input
+                    type="text"
+                    placeholder="Filtrar por número de vuelo"
+                    className="form-control"
+                    value={numeroVueloFiltro}
+                    onChange={(e) => { setNumeroVueloFiltro(e.target.value); setPaginaActual(1); }}
+                    style={{
+                      width: '100%',
+                      height: '50px',
+                      padding: '0 20px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </div>
+              </div>
               {loading ? (
                 <div className="text-center py-40">
                   <div className="spinner-border text-blue-1"></div>
@@ -87,6 +113,7 @@ const GestionReservas = () => {
                     <thead className="bg-light-2">
                       <tr>
                         <th>Código</th>
+                        <th>Número Vuelo</th>
                         <th>Origen</th>
                         <th>Destino</th>
                         <th>Clase</th>
@@ -101,6 +128,7 @@ const GestionReservas = () => {
                         return (
                         <tr key={reserva.Codigo || reserva.codigo || reserva.id}>
                           <td className="fw-500">{reserva.Codigo || reserva.codigo}</td>
+                          <td className="fw-500">{reserva.NumeroVuelo || reserva.numeroVuelo || ''}</td>
                           <td>{reserva.Origen || reserva.origen || ''}</td>
                           <td>{reserva.Destino || reserva.destino || ''}</td>
                           <td>{reserva.Clase || reserva.clase || ''}</td>
@@ -178,18 +206,18 @@ const GestionReservas = () => {
                     </div>
                   )}
 
-                  {reservas.length === 0 && (
+                  {reservasFiltradas.length === 0 && (
                     <div className="text-center py-40 text-light-1">No se encontraron reservas</div>
                   )}
                 </div>
               )}
 
               {/* Paginación simple */}
-              {!loading && reservas.length > itemsPorPagina && (
+              {!loading && reservasFiltradas.length > itemsPorPagina && (
                 <div className="pt-30 border-top-light">
                   <div className="row x-gap-10 y-gap-20 justify-between items-center">
                     <div className="col-auto">
-                      <div className="text-14 text-light-1">Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, reservas.length)} de {reservas.length} reservas</div>
+                      <div className="text-14 text-light-1">Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, reservasFiltradas.length)} de {reservasFiltradas.length} reservas</div>
                     </div>
                     <div className="col-auto">
                       <div className="row x-gap-10 y-gap-10 items-center">
@@ -198,13 +226,13 @@ const GestionReservas = () => {
                             <i className="icon-chevron-left text-12"></i>
                           </button>
                         </div>
-                        {[...Array(Math.ceil(reservas.length / itemsPorPagina))].map((_, i) => (
+                        {[...Array(Math.ceil(reservasFiltradas.length / itemsPorPagina))].map((_, i) => (
                           <div className="col-auto" key={i}>
                             <button className={`button size-40 rounded-full ${paginaActual === i + 1 ? 'bg-dark-1 text-white' : 'border-light bg-white text-dark-1'}`} onClick={() => setPaginaActual(i + 1)}>{i + 1}</button>
                           </div>
                         ))}
                         <div className="col-auto">
-                          <button className="button -blue-1 size-40 rounded-full border-light" onClick={() => setPaginaActual(paginaActual + 1)} disabled={paginaActual === Math.ceil(reservas.length / itemsPorPagina)} style={{ opacity: paginaActual === Math.ceil(reservas.length / itemsPorPagina) ? 0.5 : 1 }}>
+                          <button className="button -blue-1 size-40 rounded-full border-light" onClick={() => setPaginaActual(paginaActual + 1)} disabled={paginaActual === Math.ceil(reservasFiltradas.length / itemsPorPagina)} style={{ opacity: paginaActual === Math.ceil(reservasFiltradas.length / itemsPorPagina) ? 0.5 : 1 }}>
                             <i className="icon-chevron-right text-12"></i>
                           </button>
                         </div>

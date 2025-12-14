@@ -10,6 +10,7 @@ const GestionFacturas = () => {
   const [facturas, setFacturas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [codigoFiltro, setCodigoFiltro] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [itemsPorPagina] = useState(10);
 
@@ -32,10 +33,16 @@ const GestionFacturas = () => {
     }
   };
 
+  // Filtrado por código de factura
+  const facturasFiltradas = facturas.filter(f => {
+    const codigo = (f.Codigo || f.codigo || '').toString();
+    return codigo.toLowerCase().includes((codigoFiltro || '').toLowerCase());
+  });
+
   // Paginación
   const indexOfLast = paginaActual * itemsPorPagina;
   const indexOfFirst = indexOfLast - itemsPorPagina;
-  const facturasPaginadas = facturas.slice(indexOfFirst, indexOfLast);
+  const facturasPaginadas = facturasFiltradas.slice(indexOfFirst, indexOfLast);
 
   return (
     <>
@@ -56,6 +63,25 @@ const GestionFacturas = () => {
             </div>
 
             <div className="py-30 px-30 rounded-4 bg-white shadow-3">
+              {/* Filtro por código de factura */}
+              <div className="row y-gap-20 mb-20">
+                <div className="col-12">
+                  <input
+                    type="text"
+                    placeholder="Filtrar por código de factura"
+                    className="form-control"
+                    value={codigoFiltro}
+                    onChange={(e) => { setCodigoFiltro(e.target.value); setPaginaActual(1); }}
+                    style={{
+                      width: '100%',
+                      height: '50px',
+                      padding: '0 20px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </div>
+              </div>
             {loading ? (
               <div className="text-center py-40">
                 <div className="spinner-border text-blue-1"></div>
@@ -89,18 +115,18 @@ const GestionFacturas = () => {
                   </tbody>
                 </table>
 
-                {facturas.length === 0 && (
+                {facturasFiltradas.length === 0 && (
                   <div className="text-center py-40 text-light-1">No se encontraron facturas</div>
                 )}
               </div>
             )}
 
             {/* Paginación simple */}
-            {!loading && facturas.length > itemsPorPagina && (
+            {!loading && facturasFiltradas.length > itemsPorPagina && (
               <div className="pt-30 border-top-light">
                 <div className="row x-gap-10 y-gap-20 justify-between items-center">
                   <div className="col-auto">
-                    <div className="text-14 text-light-1">Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, facturas.length)} de {facturas.length} facturas</div>
+                    <div className="text-14 text-light-1">Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, facturasFiltradas.length)} de {facturasFiltradas.length} facturas</div>
                   </div>
                   <div className="col-auto">
                     <div className="row x-gap-10 y-gap-10 items-center">
@@ -109,13 +135,13 @@ const GestionFacturas = () => {
                           <i className="icon-chevron-left text-12"></i>
                         </button>
                       </div>
-                      {[...Array(Math.ceil(facturas.length / itemsPorPagina))].map((_, i) => (
+                      {[...Array(Math.ceil(facturasFiltradas.length / itemsPorPagina))].map((_, i) => (
                         <div className="col-auto" key={i}>
                           <button className={`button size-40 rounded-full ${paginaActual === i + 1 ? 'bg-dark-1 text-white' : 'border-light bg-white text-dark-1'}`} onClick={() => setPaginaActual(i + 1)}>{i + 1}</button>
                         </div>
                       ))}
                       <div className="col-auto">
-                        <button className="button -blue-1 size-40 rounded-full border-light" onClick={() => setPaginaActual(paginaActual + 1)} disabled={paginaActual === Math.ceil(facturas.length / itemsPorPagina)} style={{ opacity: paginaActual === Math.ceil(facturas.length / itemsPorPagina) ? 0.5 : 1 }}>
+                        <button className="button -blue-1 size-40 rounded-full border-light" onClick={() => setPaginaActual(paginaActual + 1)} disabled={paginaActual === Math.ceil(facturasFiltradas.length / itemsPorPagina)} style={{ opacity: paginaActual === Math.ceil(facturasFiltradas.length / itemsPorPagina) ? 0.5 : 1 }}>
                           <i className="icon-chevron-right text-12"></i>
                         </button>
                       </div>
