@@ -26,3 +26,17 @@ export const obtenerAeropuertoPorCodigo = async (codigo) => {
     throw error;
   }
 };
+
+/**
+ * Obtener capacidad de un aeropuerto por código
+ * @param {string} codigo - Código del aeropuerto (ej: "SDQ")
+ */
+export const obtenerCapacidadAeropuerto = async (codigo) => {
+  try {
+    const response = await api.get(`/aeropuerto/${codigo}/capacidad`);
+    return response.data;
+  } catch (error) {
+    console.error('Error en obtenerCapacidadAeropuerto:', error);
+    throw error;
+  }
+};

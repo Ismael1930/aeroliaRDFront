@@ -8,7 +8,8 @@ import {
   obtenerTodasLasAeronaves, 
   crearAeronave, 
   actualizarAeronave, 
-  eliminarAeronave 
+  eliminarAeronave,
+  obtenerDisponibilidadAeronave 
 } from "@/api/aeronaveService";
 
 const GestionAeronaves = () => {
@@ -17,10 +18,10 @@ const GestionAeronaves = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [aeronaveSeleccionada, setAeronaveSeleccionada] = useState(null);
+  const [disponibilidad, setDisponibilidad] = useState(null);
+  const [loadingDisponibilidad, setLoadingDisponibilidad] = useState(false);
   const [filtro, setFiltro] = useState('');
   const [error, setError] = useState(null);
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [itemsPorPagina] = useState(10);
 
   const [formulario, setFormulario] = useState({
     modelo: '',
@@ -38,22 +39,37 @@ const GestionAeronaves = () => {
       setLoading(true);
       setError(null);
       
-      try {
-        const response = await obtenerTodasLasAeronaves();
-        console.log('Respuesta aeronaves:', response);
-        const aeronavesData = Array.isArray(response) ? response : (response.data || response.aeronaves || []);
-        setAeronaves(aeronavesData);
-      } catch (err) {
-        console.error('Error al cargar aeronaves:', err);
-        if (err.response?.status === 403) {
-          setError('No tienes permisos para ver las aeronaves. Contacta al administrador.');
-        }
+      const response = await obtenerTodasLasAeronaves();
+      const aeronavesData = Array.isArray(response) ? response : (response.data || response.aeronaves || []);
+      setAeronaves(aeronavesData);
+    } catch (err) {
+      console.error('Error al cargar aeronaves:', err);
+      if (err.response?.status === 403) {
+        setError('No tienes permisos para ver las aeronaves. Contacta al administrador.');
+      } else {
+        setError('Error al cargar los datos. Por favor, intenta nuevamente.');
       }
-    } catch (error) {
-      console.error('Error general al cargar datos:', error);
-      setError('Error al cargar los datos. Por favor, intenta nuevamente.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const seleccionarAeronave = async (matricula) => {
+    setAeronaveSeleccionada(matricula);
+    setLoadingDisponibilidad(true);
+    
+    try {
+      const response = await obtenerDisponibilidadAeronave(matricula);
+      if (response.success && response.data) {
+        setDisponibilidad(response.data);
+      } else {
+        setDisponibilidad(response.data || response);
+      }
+    } catch (err) {
+      console.error('Error al cargar disponibilidad:', err);
+      setDisponibilidad(null);
+    } finally {
+      setLoadingDisponibilidad(false);
     }
   };
 
@@ -68,9 +84,9 @@ const GestionAeronaves = () => {
     setMostrarModal(true);
   };
 
-  const abrirModalEditar = (aeronave) => {
+  const abrirModalEditar = (aeronave, e) => {
+    e.stopPropagation();
     setModoEdicion(true);
-    setAeronaveSeleccionada(aeronave);
     setFormulario({
       matricula: aeronave.matricula,
       modelo: aeronave.modelo,
@@ -90,8 +106,6 @@ const GestionAeronaves = () => {
         estado: formulario.estado
       };
 
-      console.log('Datos enviados al backend:', datosAeronave);
-
       if (modoEdicion) {
         await actualizarAeronave(datosAeronave);
         alert('Aeronave actualizada exitosamente');
@@ -107,12 +121,17 @@ const GestionAeronaves = () => {
     }
   };
 
-  const handleEliminar = async (matricula) => {
+  const handleEliminar = async (matricula, e) => {
+    e.stopPropagation();
     if (!confirm('¿Está seguro de eliminar esta aeronave?')) return;
     
     try {
       await eliminarAeronave(matricula);
       alert('Aeronave eliminada exitosamente');
+      if (aeronaveSeleccionada === matricula) {
+        setAeronaveSeleccionada(null);
+        setDisponibilidad(null);
+      }
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar aeronave:', error);
@@ -125,14 +144,12 @@ const GestionAeronaves = () => {
     a.matricula?.toLowerCase().includes(filtro.toLowerCase())
   );
 
-  // Cálculos de paginación
-  const indexUltimo = paginaActual * itemsPorPagina;
-  const indexPrimero = indexUltimo - itemsPorPagina;
-  const aeronavesActuales = aeronavesFiltradas.slice(indexPrimero, indexUltimo);
-  const totalPaginas = Math.ceil(aeronavesFiltradas.length / itemsPorPagina);
-
-  const cambiarPagina = (numeroPagina) => {
-    setPaginaActual(numeroPagina);
+  // Obtener color según porcentaje de ocupación
+  const getColorOcupacion = (porcentaje) => {
+    if (porcentaje >= 90) return { bg: '#ffebee', color: '#c62828', label: 'Crítico' };
+    if (porcentaje >= 75) return { bg: '#fff3e0', color: '#e65100', label: 'Alto' };
+    if (porcentaje >= 50) return { bg: '#e3f2fd', color: '#1565c0', label: 'Medio' };
+    return { bg: '#e8f5e9', color: '#2e7d32', label: 'Bajo' };
   };
 
   return (
@@ -151,7 +168,7 @@ const GestionAeronaves = () => {
               <div className="col-auto">
                 <h1 className="text-30 lh-14 fw-600">Gestión de Aeronaves</h1>
                 <div className="text-15 text-light-1">
-                  Administrar todas las aeronaves del sistema
+                  Administrar aeronaves y ver disponibilidad
                 </div>
               </div>
               <div className="col-auto">
@@ -169,9 +186,10 @@ const GestionAeronaves = () => {
             <div className="py-30 px-30 rounded-4 bg-white shadow-3 mb-30">
               <div className="row y-gap-20">
                 <div className="col-12">
+                  <label className="text-14 fw-500 mb-10 d-block">Buscar Aeronave</label>
                   <input
                     type="text"
-                    placeholder="Buscar por modelo o matrícula..."
+                    placeholder="Buscar por modelo o matrícula"
                     className="form-control"
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value)}
@@ -197,139 +215,302 @@ const GestionAeronaves = () => {
               </div>
             )}
 
-            {/* Tabla de Aeronaves */}
-            <div className="py-30 px-30 rounded-4 bg-white shadow-3">
-              {loading ? (
-                <div className="text-center py-40">
-                  <div className="spinner-border text-blue-1"></div>
-                </div>
-              ) : (
-                <div className="overflow-scroll scroll-bar-1">
-                  <table className="table-3 -border-bottom col-12">
-                    <thead className="bg-light-2">
-                      <tr>
-                        <th>Modelo</th>
-                        <th>Matrícula</th>
-                        <th>Capacidad</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {aeronavesActuales.map((aeronave) => (
-                        <tr key={aeronave.matricula}>
-                          <td className="fw-500">{aeronave.modelo}</td>
-                          <td className="fw-500 text-blue-1">{aeronave.matricula}</td>
-                          <td>{aeronave.capacidad} pasajeros</td>
-                          <td>
-                            <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
-                              aeronave.estado === 'Disponible' ? 'bg-green-1 text-white' :
-                              aeronave.estado === 'Mantenimiento' ? 'bg-yellow-4 text-yellow-3' :
-                              'bg-red-3 text-red-2'
-                            }`}>
-                              {aeronave.estado}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="d-flex items-center gap-10">
-                              <button
-                                className="flex-center bg-light-2 rounded-4 size-35"
-                                onClick={() => abrirModalEditar(aeronave)}
-                                title="Editar"
-                              >
-                                <i className="icon-edit text-16 text-light-1"></i>
-                              </button>
-                              <button
-                                className="flex-center bg-red-3 rounded-4 size-35"
-                                onClick={() => handleEliminar(aeronave.matricula)}
-                                title="Eliminar"
-                              >
-                                <i className="icon-trash-2 text-16 text-red-2"></i>
-                              </button>
+            <div className="row y-gap-30" style={{ alignItems: 'stretch' }}>
+              {/* Lista de Aeronaves */}
+              <div className="col-xl-4 col-lg-5 d-flex">
+                <div className="py-30 px-30 rounded-4 bg-white shadow-3 w-100" style={{ height: '650px', display: 'flex', flexDirection: 'column' }}>
+                  <h3 className="text-18 fw-600 mb-20">Aeronaves ({aeronavesFiltradas.length})</h3>
+                  
+                  {loading ? (
+                    <div className="text-center py-40">
+                      <div className="spinner-border text-blue-1"></div>
+                    </div>
+                  ) : (
+                    <div className="overflow-scroll scroll-bar-1" style={{ flex: 1, overflowY: 'auto' }}>
+                      {aeronavesFiltradas.map((aeronave, index) => (
+                        <div 
+                          key={aeronave.matricula || `aeronave-${index}`}
+                          className={`py-15 px-15 rounded-4 mb-10 ${
+                            aeronaveSeleccionada === aeronave.matricula 
+                              ? 'bg-blue-1 text-white' 
+                              : 'bg-light-2'
+                          }`}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => seleccionarAeronave(aeronave.matricula)}
+                        >
+                          <div className="d-flex justify-between items-center">
+                            <div>
+                              <div className="fw-600">{aeronave.matricula}</div>
+                              <div className={`text-14 ${aeronaveSeleccionada === aeronave.matricula ? 'text-white' : 'text-light-1'}`}>
+                                {aeronave.modelo}
+                              </div>
+                              <div className={`text-12 ${aeronaveSeleccionada === aeronave.matricula ? 'text-white' : 'text-light-1'}`}>
+                                {aeronave.capacidad} pasajeros
+                              </div>
                             </div>
-                          </td>
-                        </tr>
+                            <div className="d-flex flex-column items-end gap-5">
+                              <span 
+                                className="rounded-100 py-2 px-8 text-10 fw-500"
+                                style={{ 
+                                  backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' :
+                                    aeronave.estado === 'Disponible' || aeronave.estado === 'Operativa' ? '#e8f5e9' :
+                                    aeronave.estado === 'Mantenimiento' ? '#fff3e0' : '#ffebee',
+                                  color: aeronaveSeleccionada === aeronave.matricula ? 'white' :
+                                    aeronave.estado === 'Disponible' || aeronave.estado === 'Operativa' ? '#2e7d32' :
+                                    aeronave.estado === 'Mantenimiento' ? '#e65100' : '#c62828'
+                                }}
+                              >
+                                {aeronave.estado}
+                              </span>
+                              <div className="d-flex gap-5">
+                                <button
+                                  className="flex-center rounded-4 size-25"
+                                  style={{ backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' : '#e3f2fd' }}
+                                  onClick={(e) => abrirModalEditar(aeronave, e)}
+                                  title="Editar"
+                                >
+                                  <i className={`icon-edit text-12 ${aeronaveSeleccionada === aeronave.matricula ? 'text-white' : 'text-blue-1'}`}></i>
+                                </button>
+                                <button
+                                  className="flex-center rounded-4 size-25"
+                                  style={{ backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' : '#ffebee' }}
+                                  onClick={(e) => handleEliminar(aeronave.matricula, e)}
+                                  title="Eliminar"
+                                >
+                                  <i className={`icon-trash-2 text-12 ${aeronaveSeleccionada === aeronave.matricula ? 'text-white' : 'text-red-1'}`}></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
 
-                  {aeronavesFiltradas.length === 0 && (
-                    <div className="text-center py-40 text-light-1">
-                      No se encontraron aeronaves
+                      {aeronavesFiltradas.length === 0 && (
+                        <div className="text-center py-20 text-light-1">
+                          No se encontraron aeronaves
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
 
-              {/* Paginación */}
-              {!loading && aeronavesFiltradas.length > 0 && (
-                <div className="pt-30 border-top-light">
-                  <div className="row x-gap-10 y-gap-20 justify-between items-center">
-                    <div className="col-auto">
-                      <div className="text-14 text-light-1">
-                        Mostrando {indexPrimero + 1} a {Math.min(indexUltimo, aeronavesFiltradas.length)} de {aeronavesFiltradas.length} aeronaves
+              {/* Detalle de Disponibilidad */}
+              <div className="col-xl-8 col-lg-7 d-flex">
+                {loadingDisponibilidad ? (
+                  <div className="py-30 px-30 rounded-4 bg-white shadow-3 w-100" style={{ height: '650px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="spinner-border text-blue-1"></div>
+                  </div>
+                ) : disponibilidad ? (
+                  <div className="py-30 px-30 rounded-4 bg-white shadow-3 w-100 overflow-scroll scroll-bar-1" style={{ height: '650px' }}>
+                    {/* Header */}
+                    <div className="d-flex justify-between items-center mb-30">
+                      <div>
+                        <h3 className="text-22 fw-600">
+                          {disponibilidad.matricula}
+                        </h3>
+                        <div className="text-16 text-dark-1">{disponibilidad.modelo}</div>
+                        <div className="text-14 text-light-1">
+                          Estado: <span className={`fw-500 ${disponibilidad.estado === 'Operativa' || disponibilidad.estado === 'Disponible' ? 'text-green-2' : 'text-red-1'}`}>
+                            {disponibilidad.estado}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-14 text-light-1">Ocupación Total</div>
+                        <div className="text-40 fw-600" style={{ color: getColorOcupacion(disponibilidad.disponibilidadAsientos?.porcentajeOcupacionTotal || 0).color }}>
+                          {disponibilidad.disponibilidadAsientos?.porcentajeOcupacionTotal?.toFixed(1) || 0}%
+                        </div>
                       </div>
                     </div>
-                    <div className="col-auto">
-                      <div className="row x-gap-10 y-gap-10 items-center">
-                        <div className="col-auto">
-                          <button
-                            className="button -blue-1 size-40 rounded-full border-light"
-                            onClick={() => cambiarPagina(paginaActual - 1)}
-                            disabled={paginaActual === 1}
-                            style={{ opacity: paginaActual === 1 ? 0.5 : 1 }}
-                          >
-                            <i className="icon-chevron-left text-12"></i>
-                          </button>
+
+                    {/* Estadísticas Generales */}
+                    <div className="row y-gap-10 mb-30">
+                      <div className="col-md-3">
+                        <div className="py-20 px-15 rounded-4 bg-blue-1-05 text-center">
+                          <div className="text-26 fw-600 text-blue-1">{disponibilidad.totalAsientos || disponibilidad.capacidad || 0}</div>
+                          <div className="text-12 text-light-1">Total Asientos</div>
                         </div>
-                        {[...Array(totalPaginas)].map((_, index) => {
-                          const numeroPagina = index + 1;
-                          if (
-                            numeroPagina === 1 ||
-                            numeroPagina === totalPaginas ||
-                            (numeroPagina >= paginaActual - 1 && numeroPagina <= paginaActual + 1)
-                          ) {
-                            return (
-                              <div className="col-auto" key={numeroPagina}>
-                                <button
-                                  className={`button size-40 rounded-full ${
-                                    paginaActual === numeroPagina
-                                      ? 'bg-dark-1 text-white'
-                                      : 'border-light bg-white text-dark-1'
-                                  }`}
-                                  onClick={() => cambiarPagina(numeroPagina)}
-                                >
-                                  {numeroPagina}
-                                </button>
-                              </div>
-                            );
-                          } else if (
-                            numeroPagina === paginaActual - 2 ||
-                            numeroPagina === paginaActual + 2
-                          ) {
-                            return (
-                              <div className="col-auto" key={numeroPagina}>
-                                <div className="text-14 text-light-1">...</div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        })}
-                        <div className="col-auto">
-                          <button
-                            className="button -blue-1 size-40 rounded-full border-light"
-                            onClick={() => cambiarPagina(paginaActual + 1)}
-                            disabled={paginaActual === totalPaginas}
-                            style={{ opacity: paginaActual === totalPaginas ? 0.5 : 1 }}
-                          >
-                            <i className="icon-chevron-right text-12"></i>
-                          </button>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="py-20 px-15 rounded-4 text-center" style={{ backgroundColor: '#ffebee' }}>
+                          <div className="text-26 fw-600" style={{ color: '#c62828' }}>{disponibilidad.disponibilidadAsientos?.totalReservados || 0}</div>
+                          <div className="text-12 text-light-1">Reservados</div>
                         </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="py-20 px-15 rounded-4 text-center" style={{ backgroundColor: '#e8f5e9' }}>
+                          <div className="text-26 fw-600 text-green-2">{disponibilidad.disponibilidadAsientos?.totalDisponibles || 0}</div>
+                          <div className="text-12 text-light-1">Disponibles</div>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="py-20 px-15 rounded-4 text-center" style={{ backgroundColor: '#e3f2fd' }}>
+                          <div className="text-26 fw-600 text-blue-1">{disponibilidad.totalVuelosProgramados || 0}</div>
+                          <div className="text-12 text-light-1">Vuelos Prog.</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Info adicional */}
+                    <div className="d-flex gap-30 mb-30 py-15 px-20 rounded-4 bg-light-2">
+                      <div>
+                        <span className="text-light-1">Vuelos hoy: </span>
+                        <span className="fw-600 text-dark-1">{disponibilidad.vuelosHoy || 0}</span>
+                      </div>
+                      {disponibilidad.tiempoPreparacionMinutos && (
+                        <div>
+                          <span className="text-light-1">Tiempo preparación: </span>
+                          <span className="fw-600 text-dark-1">{disponibilidad.tiempoPreparacionMinutos} min</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Disponibilidad por Clase */}
+                    <div className="text-16 fw-600 mb-15">Disponibilidad por Clase</div>
+                    
+                    {/* Primera Clase */}
+                    <div className="py-20 px-20 rounded-4 mb-15" style={{ backgroundColor: '#fef3e2', border: '1px solid #f0c14b' }}>
+                      <div className="d-flex justify-between items-center mb-10">
+                        <div className="d-flex items-center gap-10">
+                          <i className="icon-star text-20" style={{ color: '#b8860b' }}></i>
+                          <span className="fw-600 text-16">Primera Clase</span>
+                        </div>
+                        <span className="fw-600" style={{ color: getColorOcupacion(disponibilidad.disponibilidadAsientos?.primeraPorcentajeOcupacion || 0).color }}>
+                          {disponibilidad.disponibilidadAsientos?.primeraPorcentajeOcupacion?.toFixed(1) || 0}% ocupado
+                        </span>
+                      </div>
+                      <div className="row y-gap-10">
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600 text-dark-1">{disponibilidad.disponibilidadAsientos?.primeraTotal || 0}</div>
+                          <div className="text-12 text-light-1">Total</div>
+                        </div>
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600" style={{ color: '#c62828' }}>{disponibilidad.disponibilidadAsientos?.primeraReservados || 0}</div>
+                          <div className="text-12 text-light-1">Reservados</div>
+                        </div>
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600 text-green-2">{disponibilidad.disponibilidadAsientos?.primeraDisponibles || 0}</div>
+                          <div className="text-12 text-light-1">Disponibles</div>
+                        </div>
+                      </div>
+                      <div className="mt-10">
+                        <div className="rounded-4" style={{ height: '8px', backgroundColor: '#ddd', overflow: 'hidden' }}>
+                          <div style={{ 
+                            width: `${disponibilidad.disponibilidadAsientos?.primeraPorcentajeOcupacion || 0}%`, 
+                            height: '100%', 
+                            backgroundColor: '#b8860b' 
+                          }}></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ejecutiva */}
+                    <div className="py-20 px-20 rounded-4 mb-15" style={{ backgroundColor: '#e8eaf6', border: '1px solid #7986cb' }}>
+                      <div className="d-flex justify-between items-center mb-10">
+                        <div className="d-flex items-center gap-10">
+                          <i className="icon-briefcase text-20" style={{ color: '#3f51b5' }}></i>
+                          <span className="fw-600 text-16">Clase Ejecutiva</span>
+                        </div>
+                        <span className="fw-600" style={{ color: getColorOcupacion(disponibilidad.disponibilidadAsientos?.ejecutivaPorcentajeOcupacion || 0).color }}>
+                          {disponibilidad.disponibilidadAsientos?.ejecutivaPorcentajeOcupacion?.toFixed(1) || 0}% ocupado
+                        </span>
+                      </div>
+                      <div className="row y-gap-10">
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600 text-dark-1">{disponibilidad.disponibilidadAsientos?.ejecutivaTotal || 0}</div>
+                          <div className="text-12 text-light-1">Total</div>
+                        </div>
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600" style={{ color: '#c62828' }}>{disponibilidad.disponibilidadAsientos?.ejecutivaReservados || 0}</div>
+                          <div className="text-12 text-light-1">Reservados</div>
+                        </div>
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600 text-green-2">{disponibilidad.disponibilidadAsientos?.ejecutivaDisponibles || 0}</div>
+                          <div className="text-12 text-light-1">Disponibles</div>
+                        </div>
+                      </div>
+                      <div className="mt-10">
+                        <div className="rounded-4" style={{ height: '8px', backgroundColor: '#ddd', overflow: 'hidden' }}>
+                          <div style={{ 
+                            width: `${disponibilidad.disponibilidadAsientos?.ejecutivaPorcentajeOcupacion || 0}%`, 
+                            height: '100%', 
+                            backgroundColor: '#3f51b5' 
+                          }}></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Económica */}
+                    <div className="py-20 px-20 rounded-4 mb-15" style={{ backgroundColor: '#e0f2f1', border: '1px solid #4db6ac' }}>
+                      <div className="d-flex justify-between items-center mb-10">
+                        <div className="d-flex items-center gap-10">
+                          <i className="icon-users text-20" style={{ color: '#00897b' }}></i>
+                          <span className="fw-600 text-16">Clase Económica</span>
+                        </div>
+                        <span className="fw-600" style={{ color: getColorOcupacion(disponibilidad.disponibilidadAsientos?.economicaPorcentajeOcupacion || 0).color }}>
+                          {disponibilidad.disponibilidadAsientos?.economicaPorcentajeOcupacion?.toFixed(1) || 0}% ocupado
+                        </span>
+                      </div>
+                      <div className="row y-gap-10">
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600 text-dark-1">{disponibilidad.disponibilidadAsientos?.economicaTotal || 0}</div>
+                          <div className="text-12 text-light-1">Total</div>
+                        </div>
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600" style={{ color: '#c62828' }}>{disponibilidad.disponibilidadAsientos?.economicaReservados || 0}</div>
+                          <div className="text-12 text-light-1">Reservados</div>
+                        </div>
+                        <div className="col-4 text-center">
+                          <div className="text-22 fw-600 text-green-2">{disponibilidad.disponibilidadAsientos?.economicaDisponibles || 0}</div>
+                          <div className="text-12 text-light-1">Disponibles</div>
+                        </div>
+                      </div>
+                      <div className="mt-10">
+                        <div className="rounded-4" style={{ height: '8px', backgroundColor: '#ddd', overflow: 'hidden' }}>
+                          <div style={{ 
+                            width: `${disponibilidad.disponibilidadAsientos?.economicaPorcentajeOcupacion || 0}%`, 
+                            height: '100%', 
+                            backgroundColor: '#00897b' 
+                          }}></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Leyenda */}
+                    <div className="d-flex gap-20 mt-20 pt-20 border-top-light">
+                      <div className="d-flex items-center gap-5">
+                        <div className="size-12 rounded-full" style={{ backgroundColor: '#2e7d32' }}></div>
+                        <span className="text-12 text-light-1">Bajo (&lt;50%)</span>
+                      </div>
+                      <div className="d-flex items-center gap-5">
+                        <div className="size-12 rounded-full" style={{ backgroundColor: '#1565c0' }}></div>
+                        <span className="text-12 text-light-1">Medio (50-74%)</span>
+                      </div>
+                      <div className="d-flex items-center gap-5">
+                        <div className="size-12 rounded-full" style={{ backgroundColor: '#e65100' }}></div>
+                        <span className="text-12 text-light-1">Alto (75-89%)</span>
+                      </div>
+                      <div className="d-flex items-center gap-5">
+                        <div className="size-12 rounded-full" style={{ backgroundColor: '#c62828' }}></div>
+                        <span className="text-12 text-light-1">Crítico (≥90%)</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="py-30 px-30 rounded-4 bg-white shadow-3 w-100" style={{ height: '650px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="text-center">
+                      <i className="icon-airplane text-60 text-light-1 mb-20"></i>
+                      <h3 className="text-18 fw-500 text-light-1">
+                        Selecciona una aeronave
+                      </h3>
+                      <p className="text-14 text-light-1 mt-10">
+                        Haz clic en una aeronave para ver su disponibilidad de asientos
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <Footer />
@@ -426,6 +607,7 @@ const GestionAeronaves = () => {
                     }}
                   >
                     <option value="Disponible">Disponible</option>
+                    <option value="Operativa">Operativa</option>
                     <option value="Mantenimiento">Mantenimiento</option>
                     <option value="FueraDeServicio">Fuera de Servicio</option>
                   </select>

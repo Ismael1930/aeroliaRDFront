@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaPlaneDeparture, FaPlane, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaTachometerAlt, FaReceipt, FaClipboardList } from 'react-icons/fa';
+import { FaPlaneDeparture, FaPlane, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaTachometerAlt, FaReceipt, FaClipboardList, FaMapMarkerAlt } from 'react-icons/fa';
 import { useAuth } from "@/context/AuthContext";
 import { isActiveLink } from "@/utils/linkActiveChecker";
 import { usePathname, useRouter } from "next/navigation";
@@ -45,6 +45,13 @@ console.log('Sidebar - isAdmin:', isAdmin);
       icon: <FaPlane size={20} className="mr-15" />,
       name: "Aeronaves",
       routePath: "/dashboard/db-aeronaves",
+      adminOnly: true,
+    },
+    {
+      id: 16,
+      icon: <FaMapMarkerAlt size={20} className="mr-15" />,
+      name: "Aeropuertos",
+      routePath: "/dashboard/db-aeropuertos",
       adminOnly: true,
     },
     {

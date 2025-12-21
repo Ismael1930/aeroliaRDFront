@@ -81,3 +81,30 @@ export const eliminarAeronave = async (matricula) => {
     throw error;
   }
 };
+
+/**
+ * Obtener disponibilidad de todas las aeronaves (Solo Admin)
+ */
+export const obtenerDisponibilidadAeronaves = async () => {
+  try {
+    const response = await api.get('/aeronave/disponibilidad');
+    return response.data;
+  } catch (error) {
+    console.error('Error en obtenerDisponibilidadAeronaves:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener disponibilidad de una aeronave específica (Solo Admin)
+ * @param {string} matricula - Matrícula de la aeronave
+ */
+export const obtenerDisponibilidadAeronave = async (matricula) => {
+  try {
+    const response = await api.get(`/aeronave/${matricula}/disponibilidad`);
+    return response.data;
+  } catch (error) {
+    console.error('Error en obtenerDisponibilidadAeronave:', error);
+    throw error;
+  }
+};
