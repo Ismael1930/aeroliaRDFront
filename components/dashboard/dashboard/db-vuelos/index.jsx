@@ -28,7 +28,7 @@ const GestionVuelos = () => {
 
   const [formulario, setFormulario] = useState({
     numeroVuelo: '',
-    idAeronave: '',
+    matricula: '',
     origenCodigo: '',
     destinoCodigo: '',
     fecha: '',
@@ -57,8 +57,14 @@ const GestionVuelos = () => {
       try {
         const response = await obtenerTodosLosVuelos();
         console.log('Respuesta vuelos:', response);
-        // El backend puede devolver {data: [...]} o directamente [...]
-        vuelosData = Array.isArray(response) ? response : (response.data || response.vuelos || []);
+        // El backend devuelve {success, data: [...]}
+        if (response.success && response.data) {
+          vuelosData = response.data;
+        } else if (Array.isArray(response)) {
+          vuelosData = response;
+        } else {
+          vuelosData = response.data || [];
+        }
       } catch (err) {
         console.error('Error al cargar vuelos:', err);
         if (err.response?.status === 403) {
@@ -153,7 +159,7 @@ const GestionVuelos = () => {
     const nuevoNumeroVuelo = generarNumeroVuelo();
     setFormulario({
       numeroVuelo: nuevoNumeroVuelo,
-      idAeronave: '',
+      matricula: '',
       origenCodigo: '',
       destinoCodigo: '',
       fecha: '',
@@ -162,6 +168,7 @@ const GestionVuelos = () => {
       duracion: '',
       precioBase: '',
       tipoVuelo: 'IdaYVuelta',
+      clase: 'Economica',
       estado: 'Programado'
     });
     setMostrarModal(true);
@@ -170,10 +177,14 @@ const GestionVuelos = () => {
   const abrirModalEditar = (vuelo) => {
     setModoEdicion(true);
     setVueloSeleccionado(vuelo);
+    
+    // Obtener la matrícula de la aeronave (puede venir directamente o del objeto aeronave)
+    const matriculaValue = vuelo.matricula || vuelo.aeronave?.matricula || '';
+    
     setFormulario({
       id: vuelo.id,
       numeroVuelo: vuelo.numeroVuelo,
-      idAeronave: vuelo.idAeronave || '',
+      matricula: matriculaValue,
       origenCodigo: vuelo.origenCodigo,
       destinoCodigo: vuelo.destinoCodigo,
       fecha: vuelo.fecha?.split('T')[0] || '',
@@ -182,6 +193,7 @@ const GestionVuelos = () => {
       duracion: vuelo.duracion || '',
       precioBase: vuelo.precioBase,
       tipoVuelo: vuelo.tipoVuelo || 'IdaYVuelta',
+      clase: vuelo.clase || 'Economica',
       estado: vuelo.estado || 'Programado'
     });
     setMostrarModal(true);
@@ -197,8 +209,8 @@ const GestionVuelos = () => {
       const datosVuelo = {
         ...formulario,
         duracion: duracionMinutos, // Enviar duración en minutos como número
-        // Convertir ID de aeronave a número (o null si está vacío)
-        idAeronave: formulario.idAeronave ? parseInt(formulario.idAeronave) : null,
+        // Matrícula ya viene del formulario, enviar null si está vacío
+        matricula: formulario.matricula || null,
         // Convertir precio base a número
         precioBase: parseFloat(formulario.precioBase),
         // Convertir horas al formato TimeSpan de .NET (HH:mm:ss)
@@ -228,7 +240,38 @@ const GestionVuelos = () => {
       cargarDatos();
     } catch (error) {
       console.error('Error al guardar vuelo:', error);
-      alert('Error al guardar el vuelo');
+      
+      // Extraer mensaje de error del backend
+      let mensajeError = 'Error al guardar el vuelo';
+      
+      if (error.response?.data) {
+        const data = error.response.data;
+        // El backend puede devolver el error en diferentes formatos
+        if (typeof data === 'string') {
+          mensajeError = data;
+        } else if (data.message) {
+          mensajeError = data.message;
+        } else if (data.error) {
+          mensajeError = data.error;
+        } else if (data.title) {
+          // Para errores de validación de ASP.NET
+          mensajeError = data.title;
+          if (data.errors) {
+            const errores = Object.values(data.errors).flat();
+            if (errores.length > 0) {
+              mensajeError += ':\n' + errores.join('\n');
+            }
+          }
+        } else if (data.errors) {
+          // Solo errores sin título
+          const errores = Object.values(data.errors).flat();
+          mensajeError = errores.join('\n');
+        }
+      } else if (error.message) {
+        mensajeError = error.message;
+      }
+      
+      alert(mensajeError);
     }
   };
 
@@ -335,6 +378,7 @@ const GestionVuelos = () => {
                     <thead className="bg-light-2">
                       <tr>
                         <th>Número de Vuelo</th>
+                        <th>Aeronave</th>
                         <th>Origen</th>
                         <th>Destino</th>
                         <th>Fecha</th>
@@ -350,17 +394,21 @@ const GestionVuelos = () => {
                         <tr key={vuelo.id || `vuelo-${index}`}>
                           <td className="fw-500">{vuelo.numeroVuelo}</td>
                           <td>
-                            <div>{vuelo.origenCodigo}</div>
-                            <div className="text-14 text-light-1">{vuelo.origen}</div>
+                            <div className="fw-500">{vuelo.aeronave?.modelo || 'Sin asignar'}</div>
+                            <div className="text-14 text-light-1">{vuelo.aeronave?.matricula || '-'}</div>
                           </td>
                           <td>
-                            <div>{vuelo.destinoCodigo}</div>
-                            <div className="text-14 text-light-1">{vuelo.destino}</div>
+                            <div className="fw-500">{vuelo.origenCodigo}</div>
+                            <div className="text-14 text-light-1">{vuelo.origenNombre}</div>
+                          </td>
+                          <td>
+                            <div className="fw-500">{vuelo.destinoCodigo}</div>
+                            <div className="text-14 text-light-1">{vuelo.destinoNombre}</div>
                           </td>
                           <td>{new Date(vuelo.fecha).toLocaleDateString('es-ES')}</td>
                           <td>{vuelo.horaSalida}</td>
                           <td>{vuelo.horaLlegada}</td>
-                          <td className="fw-500">US${vuelo.precioBase}</td>
+                          <td className="fw-500">US${vuelo.precioBase?.toFixed(2) || '0.00'}</td>
                           <td>
                             <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
                               vuelo.estado === 'Programado' ? 'bg-blue-1-05 text-blue-1' :
@@ -519,13 +567,12 @@ const GestionVuelos = () => {
                     <input
                       type="text"
                       value={formulario.numeroVuelo}
-                      onChange={(e) => setFormulario({...formulario, numeroVuelo: e.target.value})}
-                      required
-                      readOnly={!modoEdicion}
-                      style={!modoEdicion ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' } : {}}
+                      readOnly
+                      disabled
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                     />
                     <label className="lh-1 text-14 text-light-1">
-                      Número de Vuelo {!modoEdicion && '(Automático)'}
+                      Número de Vuelo (Automático)
                     </label>
                   </div>
                 </div>
@@ -534,8 +581,8 @@ const GestionVuelos = () => {
                   <label className="text-14 fw-500 mb-10 d-block">Aeronave</label>
                   <select
                     className="form-select"
-                    value={formulario.idAeronave}
-                    onChange={(e) => setFormulario({...formulario, idAeronave: e.target.value})}
+                    value={formulario.matricula}
+                    onChange={(e) => setFormulario({...formulario, matricula: e.target.value})}
                     style={{
                       width: '100%',
                       height: '50px',
@@ -545,8 +592,8 @@ const GestionVuelos = () => {
                     }}
                   >
                     <option value="">Seleccione aeronave</option>
-                    {aeronaves.map((a) => (
-                      <option key={a.id} value={a.id}>
+                    {aeronaves.map((a, index) => (
+                      <option key={a.matricula || `aeronave-${index}`} value={a.matricula}>
                         {a.modelo} - {a.matricula}
                       </option>
                     ))}
@@ -678,6 +725,26 @@ const GestionVuelos = () => {
                   >
                     <option value="IdaYVuelta">Ida y Vuelta</option>
                     <option value="SoloIda">Solo Ida</option>
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="text-14 fw-500 mb-10 d-block">Clase</label>
+                  <select
+                    className="form-select"
+                    value={formulario.clase}
+                    onChange={(e) => setFormulario({...formulario, clase: e.target.value})}
+                    style={{
+                      width: '100%',
+                      height: '50px',
+                      padding: '0 20px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px'
+                    }}
+                  >
+                    <option value="Economica">Económica</option>
+                    <option value="Ejecutiva">Ejecutiva</option>
+                    <option value="Primera">Primera</option>
                   </select>
                 </div>
 
