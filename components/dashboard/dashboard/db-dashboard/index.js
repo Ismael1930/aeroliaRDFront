@@ -61,7 +61,7 @@ const index = () => {
                     <h2 className="text-18 lh-1 fw-500">Reservas recientes</h2>
                     <div>
                       <Link
-                        href="#"
+                        href="/dashboard/db-reservas"
                         className="text-14 text-blue-1 fw-500 underline"
                       >
                         View All

@@ -126,10 +126,33 @@ const GestionVuelos = () => {
     }
   };
 
+  // Generar número de vuelo automático basado en el último vuelo
+  const generarNumeroVuelo = () => {
+    const prefijo = 'RD';
+    let ultimoNumero = 1000; // Número inicial por defecto
+
+    if (vuelos.length > 0) {
+      // Buscar el número más alto entre todos los vuelos con formato RDxxxx
+      vuelos.forEach(vuelo => {
+        if (vuelo.numeroVuelo && vuelo.numeroVuelo.startsWith(prefijo)) {
+          const numero = parseInt(vuelo.numeroVuelo.substring(prefijo.length), 10);
+          if (!isNaN(numero) && numero >= ultimoNumero) {
+            ultimoNumero = numero + 1;
+          }
+        }
+      });
+    }
+
+    // Formatear con ceros a la izquierda si es necesario (4 dígitos mínimo)
+    const numeroFormateado = ultimoNumero.toString().padStart(4, '0');
+    return `${prefijo}${numeroFormateado}`;
+  };
+
   const abrirModalNuevo = () => {
     setModoEdicion(false);
+    const nuevoNumeroVuelo = generarNumeroVuelo();
     setFormulario({
-      numeroVuelo: '',
+      numeroVuelo: nuevoNumeroVuelo,
       idAeronave: '',
       origenCodigo: '',
       destinoCodigo: '',
@@ -323,8 +346,8 @@ const GestionVuelos = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {vuelosActuales.map((vuelo) => (
-                        <tr key={vuelo.id}>
+                      {vuelosActuales.map((vuelo, index) => (
+                        <tr key={vuelo.id || `vuelo-${index}`}>
                           <td className="fw-500">{vuelo.numeroVuelo}</td>
                           <td>
                             <div>{vuelo.origenCodigo}</div>
@@ -498,15 +521,18 @@ const GestionVuelos = () => {
                       value={formulario.numeroVuelo}
                       onChange={(e) => setFormulario({...formulario, numeroVuelo: e.target.value})}
                       required
+                      readOnly={!modoEdicion}
+                      style={!modoEdicion ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' } : {}}
                     />
-                    <label className="lh-1 text-14 text-light-1">Número de Vuelo</label>
+                    <label className="lh-1 text-14 text-light-1">
+                      Número de Vuelo {!modoEdicion && '(Automático)'}
+                    </label>
                   </div>
                 </div>
 
                 <div className="col-md-6">
                   <label className="text-14 fw-500 mb-10 d-block">Aeronave</label>
                   <select
-                  key={vuelos.id}
                     className="form-select"
                     value={formulario.idAeronave}
                     onChange={(e) => setFormulario({...formulario, idAeronave: e.target.value})}
@@ -544,7 +570,7 @@ const GestionVuelos = () => {
                   >
                     <option value="">Seleccione origen</option>
                     {aeropuertos.map((a) => (
-                      <option key={a.codigo} value={a.codigo}>
+                      <option key={`origen-${a.codigo}`} value={a.codigo}>
                         {a.codigo} - {a.nombre}
                       </option>
                     ))}
@@ -568,7 +594,7 @@ const GestionVuelos = () => {
                   >
                     <option value="">Seleccione destino</option>
                     {aeropuertos.map((a) => (
-                      <option key={a.codigo} value={a.codigo}>
+                      <option key={`destino-${a.codigo}`} value={a.codigo}>
                         {a.codigo} - {a.nombre}
                       </option>
                     ))}
