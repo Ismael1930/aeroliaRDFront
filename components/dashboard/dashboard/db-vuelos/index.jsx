@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
 import Header from "@/components/header/dashboard-header";
 import Footer from "../common/Footer";
+import ErrorAlert, { SuccessAlert } from "@/components/common/ErrorAlert";
 import { 
   obtenerTodosLosVuelos, 
   crearVuelo, 
@@ -23,6 +24,8 @@ const GestionVuelos = () => {
   const [vueloSeleccionado, setVueloSeleccionado] = useState(null);
   const [filtro, setFiltro] = useState('');
   const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [modalError, setModalError] = useState(null);
   const [paginaActual, setPaginaActual] = useState(1);
   const [itemsPorPagina] = useState(10);
 
@@ -199,8 +202,56 @@ const GestionVuelos = () => {
     setMostrarModal(true);
   };
 
+  // Función de validación del formulario
+  const validarFormulario = () => {
+    // Validar que el precio base no sea negativo
+    const precioBase = parseFloat(formulario.precioBase);
+    if (isNaN(precioBase) || precioBase < 0) {
+      setModalError('El precio base no puede ser negativo');
+      return false;
+    }
+
+    // Validar que origen y destino sean diferentes
+    if (formulario.origenCodigo && formulario.destinoCodigo && 
+        formulario.origenCodigo === formulario.destinoCodigo) {
+      setModalError('El origen y el destino no pueden ser iguales');
+      return false;
+    }
+
+    // Validar que la fecha no sea pasada (solo para nuevos vuelos o si se cambia la fecha)
+    if (formulario.fecha) {
+      const fechaVuelo = new Date(formulario.fecha);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+      fechaVuelo.setHours(0, 0, 0, 0);
+      
+      if (fechaVuelo < hoy) {
+        setModalError('No se puede seleccionar una fecha que ya haya pasado');
+        return false;
+      }
+    }
+
+    // Validar que haya al menos 30 minutos de diferencia entre salida y llegada
+    if (formulario.horaSalida && formulario.horaLlegada) {
+      const duracion = calcularDuracionMinutos();
+      if (duracion !== null && duracion < 30) {
+        setModalError('La diferencia entre la hora de salida y llegada debe ser de al menos 30 minutos');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setModalError(null);
+    
+    // Validar formulario antes de enviar
+    if (!validarFormulario()) {
+      return;
+    }
+    
     try {
       // Calcular duración en minutos automáticamente
       const duracionMinutos = calcularDuracionMinutos();
@@ -231,47 +282,18 @@ const GestionVuelos = () => {
 
       if (modoEdicion) {
         await actualizarVuelo(datosVuelo);
-        alert('Vuelo actualizado exitosamente');
+        setSuccessMsg('Vuelo actualizado exitosamente');
       } else {
         await crearVuelo(datosVuelo);
-        alert('Vuelo creado exitosamente');
+        setSuccessMsg('Vuelo creado exitosamente');
       }
       setMostrarModal(false);
+      setModalError(null);
       cargarDatos();
     } catch (error) {
       console.error('Error al guardar vuelo:', error);
-      
-      // Extraer mensaje de error del backend
-      let mensajeError = 'Error al guardar el vuelo';
-      
-      if (error.response?.data) {
-        const data = error.response.data;
-        // El backend puede devolver el error en diferentes formatos
-        if (typeof data === 'string') {
-          mensajeError = data;
-        } else if (data.message) {
-          mensajeError = data.message;
-        } else if (data.error) {
-          mensajeError = data.error;
-        } else if (data.title) {
-          // Para errores de validación de ASP.NET
-          mensajeError = data.title;
-          if (data.errors) {
-            const errores = Object.values(data.errors).flat();
-            if (errores.length > 0) {
-              mensajeError += ':\n' + errores.join('\n');
-            }
-          }
-        } else if (data.errors) {
-          // Solo errores sin título
-          const errores = Object.values(data.errors).flat();
-          mensajeError = errores.join('\n');
-        }
-      } else if (error.message) {
-        mensajeError = error.message;
-      }
-      
-      alert(mensajeError);
+      // Pasar el AxiosError completo para que ErrorAlert extraiga response.data.errors[0].mensaje
+      setModalError(error);
     }
   };
 
@@ -280,11 +302,12 @@ const GestionVuelos = () => {
     
     try {
       await eliminarVuelo(id);
-      alert('Vuelo eliminado exitosamente');
+      setSuccessMsg('Vuelo eliminado exitosamente');
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar vuelo:', error);
-      alert('Error al eliminar el vuelo');
+      const errorData = error.response?.data || error;
+      setError(errorData);
     }
   };
 
@@ -356,15 +379,17 @@ const GestionVuelos = () => {
               </div>
             </div>
 
+            {/* Mensaje de éxito */}
+            <SuccessAlert 
+              message={successMsg} 
+              onClose={() => setSuccessMsg(null)} 
+            />
+
             {/* Mensaje de error */}
-            {error && (
-              <div className="py-20 px-30 rounded-4 bg-red-1-05 mb-30">
-                <div className="d-flex items-center">
-                  <i className="icon-alert-circle text-24 text-red-1 mr-10"></i>
-                  <div className="text-15 text-red-1">{error}</div>
-                </div>
-              </div>
-            )}
+            <ErrorAlert 
+              error={error} 
+              onClose={() => setError(null)} 
+            />
 
             {/* Tabla de Vuelos */}
             <div className="py-30 px-30 rounded-4 bg-white shadow-3">
@@ -560,6 +585,12 @@ const GestionVuelos = () => {
               {modoEdicion ? 'Editar Vuelo' : 'Nuevo Vuelo'}
             </h3>
 
+            {/* Error en el modal */}
+            <ErrorAlert 
+              error={modalError} 
+              onClose={() => setModalError(null)} 
+            />
+
             <form onSubmit={handleSubmit}>
               <div className="row y-gap-20">
                 <div className="col-md-6">
@@ -635,7 +666,9 @@ const GestionVuelos = () => {
                       width: '100%',
                       height: '50px',
                       padding: '0 20px',
-                      border: '1px solid #ddd',
+                      border: formulario.origenCodigo && formulario.destinoCodigo && formulario.origenCodigo === formulario.destinoCodigo 
+                        ? '2px solid #dc3545' 
+                        : '1px solid #ddd',
                       borderRadius: '4px'
                     }}
                   >
@@ -646,6 +679,9 @@ const GestionVuelos = () => {
                       </option>
                     ))}
                   </select>
+                  {formulario.origenCodigo && formulario.destinoCodigo && formulario.origenCodigo === formulario.destinoCodigo && (
+                    <small className="text-danger d-block mt-5">El destino no puede ser igual al origen</small>
+                  )}
                 </div>
 
                 <div className="col-md-6">
@@ -654,10 +690,19 @@ const GestionVuelos = () => {
                       type="date"
                       value={formulario.fecha}
                       onChange={(e) => setFormulario({...formulario, fecha: e.target.value})}
+                      min={new Date().toISOString().split('T')[0]}
                       required
+                      style={{
+                        border: formulario.fecha && new Date(formulario.fecha) < new Date(new Date().toISOString().split('T')[0])
+                          ? '2px solid #dc3545'
+                          : undefined
+                      }}
                     />
                     <label className="lh-1 text-14 text-light-1">Fecha</label>
                   </div>
+                  {formulario.fecha && new Date(formulario.fecha) < new Date(new Date().toISOString().split('T')[0]) && (
+                    <small className="text-danger d-block mt-5">No se puede seleccionar una fecha pasada</small>
+                  )}
                 </div>
 
                 <div className="col-md-6">
@@ -679,9 +724,17 @@ const GestionVuelos = () => {
                       value={formulario.horaLlegada}
                       onChange={(e) => setFormulario({...formulario, horaLlegada: e.target.value})}
                       required
+                      style={{
+                        border: formulario.horaSalida && formulario.horaLlegada && calcularDuracionMinutos() !== null && calcularDuracionMinutos() < 30
+                          ? '2px solid #dc3545'
+                          : undefined
+                      }}
                     />
                     <label className="lh-1 text-14 text-light-1">Hora de Llegada</label>
                   </div>
+                  {formulario.horaSalida && formulario.horaLlegada && calcularDuracionMinutos() !== null && calcularDuracionMinutos() < 30 && (
+                    <small className="text-danger d-block mt-5">La duración del vuelo debe ser de al menos 30 minutos</small>
+                  )}
                 </div>
 
                 <div className="col-md-6">
@@ -701,12 +754,26 @@ const GestionVuelos = () => {
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
                       value={formulario.precioBase}
-                      onChange={(e) => setFormulario({...formulario, precioBase: e.target.value})}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '' || parseFloat(value) >= 0) {
+                          setFormulario({...formulario, precioBase: value});
+                        }
+                      }}
                       required
+                      style={{
+                        border: formulario.precioBase !== '' && parseFloat(formulario.precioBase) < 0
+                          ? '2px solid #dc3545'
+                          : undefined
+                      }}
                     />
                     <label className="lh-1 text-14 text-light-1">Precio Base (USD)</label>
                   </div>
+                  {formulario.precioBase !== '' && parseFloat(formulario.precioBase) < 0 && (
+                    <small className="text-danger d-block mt-5">El precio no puede ser negativo</small>
+                  )}
                 </div>
 
                 <div className="col-md-6">

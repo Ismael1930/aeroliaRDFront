@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
 import Header from "@/components/header/dashboard-header";
 import Footer from "../common/Footer";
+import ErrorAlert, { SuccessAlert } from "@/components/common/ErrorAlert";
 import { 
   obtenerTodasLasAeronaves, 
   crearAeronave, 
@@ -20,8 +21,9 @@ const GestionAeronaves = () => {
   const [aeronaveSeleccionada, setAeronaveSeleccionada] = useState(null);
   const [disponibilidad, setDisponibilidad] = useState(null);
   const [loadingDisponibilidad, setLoadingDisponibilidad] = useState(false);
-  const [filtro, setFiltro] = useState('');
-  const [error, setError] = useState(null);
+  const [filtro, setFiltro] = useState('');  const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [modalError, setModalError] = useState(null);
 
   const [formulario, setFormulario] = useState({
     modelo: '',
@@ -98,6 +100,8 @@ const GestionAeronaves = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setModalError(null);
+    
     try {
       const datosAeronave = {
         matricula: formulario.matricula,
@@ -108,16 +112,19 @@ const GestionAeronaves = () => {
 
       if (modoEdicion) {
         await actualizarAeronave(datosAeronave);
-        alert('Aeronave actualizada exitosamente');
+        setSuccessMsg('Aeronave actualizada exitosamente');
       } else {
         await crearAeronave(datosAeronave);
-        alert('Aeronave creada exitosamente');
+        setSuccessMsg('Aeronave creada exitosamente');
       }
       setMostrarModal(false);
+      setModalError(null);
       cargarDatos();
     } catch (error) {
       console.error('Error al guardar aeronave:', error);
-      alert('Error al guardar la aeronave');
+      // Extraer error del backend
+      const errorData = error.response?.data || error;
+      setModalError(errorData);
     }
   };
 
@@ -127,7 +134,7 @@ const GestionAeronaves = () => {
     
     try {
       await eliminarAeronave(matricula);
-      alert('Aeronave eliminada exitosamente');
+      setSuccessMsg('Aeronave eliminada exitosamente');
       if (aeronaveSeleccionada === matricula) {
         setAeronaveSeleccionada(null);
         setDisponibilidad(null);
@@ -135,7 +142,8 @@ const GestionAeronaves = () => {
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar aeronave:', error);
-      alert('Error al eliminar la aeronave');
+      const errorData = error.response?.data || error;
+      setError(errorData);
     }
   };
 
@@ -205,15 +213,17 @@ const GestionAeronaves = () => {
               </div>
             </div>
 
+            {/* Mensaje de éxito */}
+            <SuccessAlert 
+              message={successMsg} 
+              onClose={() => setSuccessMsg(null)} 
+            />
+
             {/* Mensaje de error */}
-            {error && (
-              <div className="py-20 px-30 rounded-4 bg-red-1-05 mb-30">
-                <div className="d-flex items-center">
-                  <i className="icon-alert-circle text-24 text-red-1 mr-10"></i>
-                  <div className="text-15 text-red-1">{error}</div>
-                </div>
-              </div>
-            )}
+            <ErrorAlert 
+              error={error} 
+              onClose={() => setError(null)} 
+            />
 
             <div className="row y-gap-30" style={{ alignItems: 'stretch' }}>
               {/* Lista de Aeronaves */}
@@ -550,6 +560,12 @@ const GestionAeronaves = () => {
             <h3 className="text-22 fw-600 mb-30">
               {modoEdicion ? 'Editar Aeronave' : 'Nueva Aeronave'}
             </h3>
+
+            {/* Error en el modal */}
+            <ErrorAlert 
+              error={modalError} 
+              onClose={() => setModalError(null)} 
+            />
 
             <form onSubmit={handleSubmit}>
               <div className="row y-gap-20">
