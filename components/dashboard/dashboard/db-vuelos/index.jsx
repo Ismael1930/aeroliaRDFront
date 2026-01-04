@@ -14,6 +14,21 @@ import {
 import { obtenerAeropuertos } from "@/api/aeropuertoService";
 import { obtenerAeronavesDisponibles } from "@/api/aeronaveService";
 
+// Función para formatear hora a formato 12h con AM/PM
+const formatearHora12h = (hora) => {
+  if (!hora) return '-';
+  const partes = hora.split(':');
+  if (partes.length >= 2) {
+    let horas = parseInt(partes[0], 10);
+    const minutos = partes[1].padStart(2, '0');
+    const periodo = horas >= 12 ? 'PM' : 'AM';
+    horas = horas % 12;
+    if (horas === 0) horas = 12;
+    return `${horas}:${minutos} ${periodo}`;
+  }
+  return hora;
+};
+
 const GestionVuelos = () => {
   const [vuelos, setVuelos] = useState([]);
   const [aeropuertos, setAeropuertos] = useState([]);
@@ -184,6 +199,16 @@ const GestionVuelos = () => {
     // Obtener la matrícula de la aeronave (puede venir directamente o del objeto aeronave)
     const matriculaValue = vuelo.matricula || vuelo.aeronave?.matricula || '';
     
+    // Normalizar horas a formato HH:mm para el input type="time"
+    const normalizarHora = (hora) => {
+      if (!hora) return '';
+      const partes = hora.split(':');
+      if (partes.length >= 2) {
+        return `${partes[0].padStart(2, '0')}:${partes[1].padStart(2, '0')}`;
+      }
+      return hora;
+    };
+    
     setFormulario({
       id: vuelo.id,
       numeroVuelo: vuelo.numeroVuelo,
@@ -191,8 +216,8 @@ const GestionVuelos = () => {
       origenCodigo: vuelo.origenCodigo,
       destinoCodigo: vuelo.destinoCodigo,
       fecha: vuelo.fecha?.split('T')[0] || '',
-      horaSalida: vuelo.horaSalida,
-      horaLlegada: vuelo.horaLlegada,
+      horaSalida: normalizarHora(vuelo.horaSalida),
+      horaLlegada: normalizarHora(vuelo.horaLlegada),
       duracion: vuelo.duracion || '',
       precioBase: vuelo.precioBase,
       tipoVuelo: vuelo.tipoVuelo || 'IdaYVuelta',
@@ -431,8 +456,8 @@ const GestionVuelos = () => {
                             <div className="text-14 text-light-1">{vuelo.destinoNombre}</div>
                           </td>
                           <td>{new Date(vuelo.fecha).toLocaleDateString('es-ES')}</td>
-                          <td>{vuelo.horaSalida}</td>
-                          <td>{vuelo.horaLlegada}</td>
+                          <td>{formatearHora12h(vuelo.horaSalida)}</td>
+                          <td>{formatearHora12h(vuelo.horaLlegada)}</td>
                           <td className="fw-500">US${vuelo.precioBase?.toFixed(2) || '0.00'}</td>
                           <td>
                             <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
