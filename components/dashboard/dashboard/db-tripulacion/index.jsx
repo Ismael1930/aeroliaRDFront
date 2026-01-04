@@ -165,8 +165,10 @@ const GestionTripulacion = () => {
     setModoEdicion(true);
     setMiembroSeleccionado(miembro);
     setModalError(null);
+    const personalId = miembro.idPersonal || miembro.id;
+    console.log('Editando personal con ID:', personalId, 'Miembro:', miembro);
     setFormulario({
-      idPersonal: miembro.idPersonal,
+      idPersonal: personalId,
       nombre: miembro.nombre,
       apellido: miembro.apellido,
       rol: miembro.rol,
@@ -191,11 +193,29 @@ const GestionTripulacion = () => {
         tiempoDescansoMinutos: parseInt(formulario.tiempoDescansoMinutos) || 480
       };
 
-      if (modoEdicion && formulario.idPersonal) {
-        datosPersonal.idPersonal = parseInt(formulario.idPersonal);
+      const personalId = formulario.idPersonal || formulario.id;
+      
+      // Validar que la licencia no exista ya (excepto si es el mismo personal en edición)
+      const licenciaExistente = personal.find(p => {
+        const pId = p.idPersonal || p.id;
+        const esOtroPersonal = !modoEdicion || Number(pId) !== Number(personalId);
+        return p.licencia?.toLowerCase() === formulario.licencia?.toLowerCase() && esOtroPersonal;
+      });
+      
+      if (licenciaExistente) {
+        setModalError(`Ya existe un personal con la licencia "${formulario.licencia}" (${licenciaExistente.nombre} ${licenciaExistente.apellido})`);
+        return;
+      }
+      
+      if (modoEdicion && personalId) {
+        // Enviar tanto id como idPersonal por si el backend usa uno u otro
+        datosPersonal.id = parseInt(personalId);
+        datosPersonal.idPersonal = parseInt(personalId);
+        console.log('Actualizando personal con datos:', datosPersonal);
         await actualizarPersonal(datosPersonal);
         setSuccessMsg('Personal actualizado exitosamente');
       } else {
+        console.log('Creando personal con datos:', datosPersonal);
         await crearPersonal(datosPersonal);
         setSuccessMsg('Personal creado exitosamente');
       }
@@ -236,10 +256,25 @@ const GestionTripulacion = () => {
     setModoEdicionEquipo(true);
     setEquipoSeleccionado(equipo);
     setModalError(null);
-    // Extraer IDs del personal del equipo
-    const idsPersonal = equipo.personal?.map(p => p.idPersonal || p.id) || [];
+    
+    // Usar obtenerMiembrosEquipo que ya maneja todas las estructuras posibles
+    const miembrosDelEquipo = obtenerMiembrosEquipo(equipo);
+    const idsPersonal = miembrosDelEquipo.map(p => Number(p.idPersonal || p.id)).filter(id => !isNaN(id));
+    
+    // Obtener el ID del equipo - mostrar todas las propiedades disponibles
+    console.log('=== DEBUG EDITAR EQUIPO ===');
+    console.log('Objeto equipo completo:', JSON.stringify(equipo, null, 2));
+    console.log('Propiedades del equipo:', Object.keys(equipo));
+    console.log('equipo.idEquipo:', equipo.idEquipo);
+    console.log('equipo.id:', equipo.id);
+    console.log('equipo.Id:', equipo.Id);
+    console.log('equipo.ID:', equipo.ID);
+    
+    const equipoId = equipo.idEquipo || equipo.id || equipo.Id || equipo.ID;
+    console.log('ID final extraído:', equipoId);
+    
     setFormularioEquipo({
-      idEquipo: equipo.idEquipo || equipo.id,
+      idEquipo: equipoId,
       nombre: equipo.nombre,
       codigo: equipo.codigo || '',
       idsPersonal: idsPersonal
@@ -265,6 +300,23 @@ const GestionTripulacion = () => {
     if (formularioEquipo.idsPersonal.length === 0) {
       setModalError('Debe seleccionar miembros para el equipo');
       return;
+    }
+
+    // Validar que ningún miembro seleccionado esté en otro equipo
+    const equipoActualId = formularioEquipo.idEquipo;
+    for (const idPersonal of formularioEquipo.idsPersonal) {
+      const equipoConMiembro = equipos.find(e => {
+        const eId = e.idEquipo || e.id;
+        if (Number(eId) === Number(equipoActualId)) return false; // Ignorar el equipo actual en edición
+        const miembrosEquipo = obtenerMiembrosEquipo(e);
+        return miembrosEquipo.some(p => Number(p.idPersonal || p.id) === Number(idPersonal));
+      });
+      
+      if (equipoConMiembro) {
+        const miembro = personal.find(p => Number(p.idPersonal || p.id) === Number(idPersonal));
+        setModalError(`${miembro?.nombre} ${miembro?.apellido} ya pertenece al equipo "${equipoConMiembro.nombre}". Una persona solo puede estar en un equipo.`);
+        return;
+      }
     }
 
     // Validar composición del equipo
@@ -315,8 +367,12 @@ const GestionTripulacion = () => {
         idsPersonal: formularioEquipo.idsPersonal
       };
 
+      console.log('Modo edición:', modoEdicionEquipo);
+      console.log('ID del equipo en formulario:', formularioEquipo.idEquipo);
+
       if (modoEdicionEquipo && formularioEquipo.idEquipo) {
-        datosEquipo.idEquipo = formularioEquipo.idEquipo;
+        datosEquipo.id = formularioEquipo.idEquipo; // Backend espera "id"
+        console.log('Datos a enviar para actualizar:', datosEquipo);
         await actualizarEquipo(datosEquipo);
         setSuccessMsg('Equipo actualizado exitosamente');
       } else {
@@ -392,11 +448,11 @@ const GestionTripulacion = () => {
     }
   };
 
-  const quitarAsignacion = async (idEquipo, matricula) => {
+  const quitarAsignacion = async (idAsignacion, matricula) => {
     if (!confirm('¿Está seguro de quitar la asignación de tripulación de esta aeronave?')) return;
     
     try {
-      await desasignarEquipo({ idEquipo, matricula });
+      await desasignarEquipo({ idAsignacion, matricula });
       setSuccessMsg('Asignación eliminada exitosamente');
       cargarDatos();
     } catch (error) {
@@ -727,7 +783,7 @@ const GestionTripulacion = () => {
                                     </button>
                                     <button
                                       className="flex-center bg-red-3 rounded-4 size-35"
-                                      onClick={() => handleEliminar(miembro.idPersonal)}
+                                      onClick={() => handleEliminar(miembroId)}
                                       title="Eliminar"
                                     >
                                       <i className="icon-trash-2 text-16 text-red-2"></i>
@@ -1022,6 +1078,7 @@ const GestionTripulacion = () => {
                             .map((aeronave) => {
                               const asignacion = obtenerAsignacionAeronave(aeronave.matricula);
                               const equipoIdAsignado = asignacion ? (asignacion.idEquipo || asignacion.equipoId || asignacion.id_equipo) : null;
+                              const asignacionId = asignacion ? (asignacion.idAsignacion || asignacion.id) : null;
                               const equipo = equipoIdAsignado ? obtenerEquipoPorId(equipoIdAsignado) : null;
                               const enMantenimiento = aeronave.estado === 'Mantenimiento' || aeronave.estado === 'En Mantenimiento';
                               
@@ -1031,39 +1088,52 @@ const GestionTripulacion = () => {
                                   <td>{aeronave.modelo}</td>
                                   <td>{aeronave.capacidadPasajeros} pasajeros</td>
                                   <td>
-                                    <span className={`rounded-100 py-4 px-10 text-14 fw-500 ${
-                                      aeronave.estado === 'Disponible' ? 'bg-green-1 text-white' :
-                                      aeronave.estado === 'En Vuelo' ? 'bg-blue-1 text-white' :
-                                      enMantenimiento ? 'bg-red-3 text-red-2' :
-                                      'bg-yellow-4 text-yellow-3'
-                                    }`}>
+                                    <span 
+                                      className="rounded-100 py-4 px-10 text-14 fw-500 text-white"
+                                      style={{
+                                        backgroundColor: aeronave.estado === 'Disponible' ? '#28a745' :
+                                          aeronave.estado === 'En Vuelo' ? '#3554d1' :
+                                          enMantenimiento ? '#dc3545' :
+                                          '#ffc107'
+                                      }}
+                                    >
                                       {aeronave.estado}
                                     </span>
                                   </td>
                                   <td>
                                     {equipo ? (
-                                      <span className="rounded-100 py-4 px-15 text-14 fw-500 bg-green-1 text-white">
+                                      <span 
+                                        className="rounded-100 py-4 px-15 text-14 fw-500 text-white"
+                                        style={{ backgroundColor: '#28a745' }}
+                                      >
                                         {equipo.nombre} ({equipo.codigo})
                                       </span>
                                     ) : enMantenimiento ? (
-                                      <span className="rounded-100 py-4 px-15 text-14 fw-500 bg-light-2 text-light-1">
+                                      <span 
+                                        className="rounded-100 py-4 px-15 text-14 fw-500 text-white"
+                                        style={{ backgroundColor: '#6c757d' }}
+                                      >
                                         No disponible
                                       </span>
                                     ) : (
-                                      <span className="rounded-100 py-4 px-15 text-14 fw-500 bg-red-3 text-red-2">
+                                      <span 
+                                        className="rounded-100 py-4 px-15 text-14 fw-500 text-white"
+                                        style={{ backgroundColor: '#dc3545' }}
+                                      >
                                         Sin equipo
                                       </span>
                                     )}
                                   </td>
                                   <td>
                                     {enMantenimiento ? (
-                                      <span className="text-12 text-light-1">En mantenimiento</span>
+                                      <span className="text-12" style={{ color: '#6c757d' }}>En mantenimiento</span>
                                     ) : (
                                       <div className="d-flex items-center gap-10">
-                                        {equipo ? (
+                                        {equipo && asignacionId ? (
                                           <button
-                                            className="button h-35 px-15 -outline-red-1 text-red-1 text-14"
-                                            onClick={() => quitarAsignacion(equipo.idEquipo || equipo.id, aeronave.matricula)}
+                                            className="button h-35 px-15 text-14 text-white"
+                                            style={{ backgroundColor: '#dc3545', border: 'none' }}
+                                            onClick={() => quitarAsignacion(asignacionId, aeronave.matricula)}
                                           >
                                             Quitar
                                           </button>
@@ -1320,10 +1390,16 @@ const GestionTripulacion = () => {
                             {miembrosRol.map((miembro, idx) => {
                               const miembroId = miembro.idPersonal || miembro.id || `temp-${idx}`;
                               const estaSeleccionado = formularioEquipo.idsPersonal.some(id => Number(id) === Number(miembroId));
-                              const enOtroEquipo = equipos.find(e => 
-                                e.idEquipo !== formularioEquipo.idEquipo && 
-                                e.personal?.some(p => Number(p.idPersonal || p.id) === Number(miembroId))
-                              );
+                              
+                              // Para verificar si está en otro equipo (NO en el equipo actual que se está editando)
+                              const equipoActualId = formularioEquipo.idEquipo;
+                              const enOtroEquipo = modoEdicionEquipo ? equipos.find(e => {
+                                const equipoId = e.idEquipo || e.id;
+                                // Si es el mismo equipo que estamos editando, no contar como "otro equipo"
+                                if (Number(equipoId) === Number(equipoActualId)) return false;
+                                const miembrosEquipo = obtenerMiembrosEquipo(e);
+                                return miembrosEquipo.some(p => Number(p.idPersonal || p.id) === Number(miembroId));
+                              }) : null;
                               
                               return (
                                 <div className="col-md-6" key={`member-${rol}-${miembroId}`}>

@@ -61,8 +61,8 @@ export const asignarEquipoAAeronave = async (asignacionData) => {
 /**
  * Desasignar equipo de aeronave (Solo Admin)
  * @param {Object} desasignacionData - Datos para desasignar
- * @param {number} desasignacionData.idEquipo - ID del equipo
- * @param {string} desasignacionData.matricula - Matrícula de la aeronave
+ * @param {number} desasignacionData.idAsignacion - ID de la asignación
+ * @param {string} desasignacionData.matricula - Matrícula de la aeronave (opcional)
  */
 export const desasignarEquipo = async (desasignacionData) => {
   try {
