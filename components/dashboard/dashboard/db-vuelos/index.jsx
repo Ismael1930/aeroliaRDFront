@@ -50,6 +50,7 @@ const GestionVuelos = () => {
     origenCodigo: '',
     destinoCodigo: '',
     fecha: '',
+    fechaRegreso: '',
     horaSalida: '',
     horaLlegada: '',
     duracion: '',
@@ -181,6 +182,7 @@ const GestionVuelos = () => {
       origenCodigo: '',
       destinoCodigo: '',
       fecha: '',
+      fechaRegreso: '',
       horaSalida: '',
       horaLlegada: '',
       duracion: '',
@@ -216,6 +218,7 @@ const GestionVuelos = () => {
       origenCodigo: vuelo.origenCodigo,
       destinoCodigo: vuelo.destinoCodigo,
       fecha: vuelo.fecha?.split('T')[0] || '',
+      fechaRegreso: vuelo.fechaRegreso?.split('T')[0] || '',
       horaSalida: normalizarHora(vuelo.horaSalida),
       horaLlegada: normalizarHora(vuelo.horaLlegada),
       duracion: vuelo.duracion || '',
@@ -265,6 +268,22 @@ const GestionVuelos = () => {
       }
     }
 
+    // Validar fecha de regreso si es vuelo de ida y vuelta
+    if (formulario.tipoVuelo === 'IdaYVuelta') {
+      if (!formulario.fechaRegreso) {
+        setModalError('Debe seleccionar una fecha de regreso para vuelos de ida y vuelta');
+        return false;
+      }
+      
+      const fechaIda = new Date(formulario.fecha);
+      const fechaRegreso = new Date(formulario.fechaRegreso);
+      
+      if (fechaRegreso <= fechaIda) {
+        setModalError('La fecha de regreso debe ser posterior a la fecha de ida');
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -296,6 +315,8 @@ const GestionVuelos = () => {
         horaLlegada: formulario.horaLlegada.length === 5 
           ? `${formulario.horaLlegada}:00` 
           : formulario.horaLlegada,
+        // Fecha de regreso solo si es ida y vuelta
+        fechaRegreso: formulario.tipoVuelo === 'IdaYVuelta' ? formulario.fechaRegreso : null,
       };
 
       // Si es edición, asegurar que el ID sea un número
@@ -806,7 +827,7 @@ const GestionVuelos = () => {
                   <select
                     className="form-select"
                     value={formulario.tipoVuelo}
-                    onChange={(e) => setFormulario({...formulario, tipoVuelo: e.target.value})}
+                    onChange={(e) => setFormulario({...formulario, tipoVuelo: e.target.value, fechaRegreso: e.target.value === 'SoloIda' ? '' : formulario.fechaRegreso})}
                     style={{
                       width: '100%',
                       height: '50px',
@@ -819,6 +840,30 @@ const GestionVuelos = () => {
                     <option value="SoloIda">Solo Ida</option>
                   </select>
                 </div>
+
+                {/* Campo de Fecha de Regreso - Solo visible para vuelos de Ida y Vuelta */}
+                {formulario.tipoVuelo === 'IdaYVuelta' && (
+                  <div className="col-md-6">
+                    <div className="form-input">
+                      <input
+                        type="date"
+                        value={formulario.fechaRegreso}
+                        onChange={(e) => setFormulario({...formulario, fechaRegreso: e.target.value})}
+                        min={formulario.fecha ? new Date(new Date(formulario.fecha).getTime() + 86400000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                        required
+                        style={{
+                          border: formulario.fechaRegreso && formulario.fecha && new Date(formulario.fechaRegreso) <= new Date(formulario.fecha)
+                            ? '2px solid #dc3545'
+                            : undefined
+                        }}
+                      />
+                      <label className="lh-1 text-14 text-light-1">Fecha de Regreso</label>
+                    </div>
+                    {formulario.fechaRegreso && formulario.fecha && new Date(formulario.fechaRegreso) <= new Date(formulario.fecha) && (
+                      <small className="text-danger d-block mt-5">La fecha de regreso debe ser posterior a la fecha de ida</small>
+                    )}
+                  </div>
+                )}
 
                 <div className="col-md-6">
                   <label className="text-14 fw-500 mb-10 d-block">Clase</label>
