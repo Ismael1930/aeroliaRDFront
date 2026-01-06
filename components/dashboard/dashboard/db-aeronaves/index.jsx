@@ -62,17 +62,82 @@ const GestionAeronaves = () => {
     
     try {
       const response = await obtenerDisponibilidadAeronave(matricula);
-      if (response.success && response.data) {
-        setDisponibilidad(response.data);
-      } else {
-        setDisponibilidad(response.data || response);
-      }
+      let data = response.success && response.data ? response.data : (response.data || response);
+      
+      // Procesar y calcular los datos de disponibilidad
+      const disponibilidadProcesada = procesarDisponibilidad(data);
+      setDisponibilidad(disponibilidadProcesada);
     } catch (err) {
       console.error('Error al cargar disponibilidad:', err);
       setDisponibilidad(null);
     } finally {
       setLoadingDisponibilidad(false);
     }
+  };
+
+  // Función para procesar y calcular la disponibilidad correctamente
+  const procesarDisponibilidad = (data) => {
+    if (!data) return null;
+
+    console.log('Datos recibidos del backend:', JSON.stringify(data, null, 2));
+
+    // Obtener datos base de asientos (puede venir en diferentes estructuras)
+    const asientos = data.disponibilidadAsientos || data.asientos || data;
+    
+    // Datos por clase - Primera (buscar en múltiples posibles nombres)
+    const primeraTotal = asientos.primeraTotal || asientos.asientosPrimera || asientos.primeraClaseTotal || 
+                         data.asientosPrimera || data.primeraClaseTotal || data.capacidadPrimera || 0;
+    const primeraReservados = asientos.primeraReservados || asientos.reservadosPrimera || asientos.primeraClaseReservados ||
+                              data.reservadosPrimera || data.primeraClaseReservados || 0;
+    const primeraDisponibles = Math.max(0, primeraTotal - primeraReservados);
+    const primeraPorcentajeOcupacion = primeraTotal > 0 ? (primeraReservados / primeraTotal) * 100 : 0;
+
+    // Datos por clase - Ejecutiva
+    const ejecutivaTotal = asientos.ejecutivaTotal || asientos.asientosEjecutiva || asientos.ejecutivaClaseTotal ||
+                           data.asientosEjecutiva || data.ejecutivaClaseTotal || data.capacidadEjecutiva || 0;
+    const ejecutivaReservados = asientos.ejecutivaReservados || asientos.reservadosEjecutiva || asientos.ejecutivaClaseReservados ||
+                                data.reservadosEjecutiva || data.ejecutivaClaseReservados || 0;
+    const ejecutivaDisponibles = Math.max(0, ejecutivaTotal - ejecutivaReservados);
+    const ejecutivaPorcentajeOcupacion = ejecutivaTotal > 0 ? (ejecutivaReservados / ejecutivaTotal) * 100 : 0;
+
+    // Datos por clase - Económica
+    const economicaTotal = asientos.economicaTotal || asientos.asientosEconomica || asientos.economicaClaseTotal ||
+                           data.asientosEconomica || data.economicaClaseTotal || data.capacidadEconomica || 0;
+    const economicaReservados = asientos.economicaReservados || asientos.reservadosEconomica || asientos.economicaClaseReservados ||
+                                data.reservadosEconomica || data.economicaClaseReservados || 0;
+    const economicaDisponibles = Math.max(0, economicaTotal - economicaReservados);
+    const economicaPorcentajeOcupacion = economicaTotal > 0 ? (economicaReservados / economicaTotal) * 100 : 0;
+
+    // Totales generales
+    const totalAsientos = data.totalAsientos || data.capacidad || (primeraTotal + ejecutivaTotal + economicaTotal);
+    const totalReservados = asientos.totalReservados || data.totalReservados || (primeraReservados + ejecutivaReservados + economicaReservados);
+    const totalDisponibles = totalAsientos - totalReservados;
+    const porcentajeOcupacionTotal = totalAsientos > 0 ? (totalReservados / totalAsientos) * 100 : 0;
+
+    return {
+      ...data,
+      totalAsientos,
+      disponibilidadAsientos: {
+        totalReservados,
+        totalDisponibles,
+        porcentajeOcupacionTotal,
+        // Primera Clase
+        primeraTotal,
+        primeraReservados,
+        primeraDisponibles,
+        primeraPorcentajeOcupacion,
+        // Ejecutiva
+        ejecutivaTotal,
+        ejecutivaReservados,
+        ejecutivaDisponibles,
+        ejecutivaPorcentajeOcupacion,
+        // Económica
+        economicaTotal,
+        economicaReservados,
+        economicaDisponibles,
+        economicaPorcentajeOcupacion,
+      }
+    };
   };
 
   const abrirModalNuevo = () => {
@@ -377,7 +442,14 @@ const GestionAeronaves = () => {
                     </div>
 
                     {/* Disponibilidad por Clase */}
-                    <div className="text-16 fw-600 mb-15">Disponibilidad por Clase</div>
+                    <div className="d-flex justify-between items-center mb-15">
+                      <div className="text-16 fw-600">Disponibilidad por Clase</div>
+                      <div className="text-14 text-light-1">
+                        Total: {(disponibilidad.disponibilidadAsientos?.primeraTotal || 0) + 
+                               (disponibilidad.disponibilidadAsientos?.ejecutivaTotal || 0) + 
+                               (disponibilidad.disponibilidadAsientos?.economicaTotal || 0)} asientos
+                      </div>
+                    </div>
                     
                     {/* Primera Clase */}
                     <div className="py-20 px-20 rounded-4 mb-15" style={{ backgroundColor: '#fef3e2', border: '1px solid #f0c14b' }}>
@@ -385,6 +457,7 @@ const GestionAeronaves = () => {
                         <div className="d-flex items-center gap-10">
                           <i className="icon-star text-20" style={{ color: '#b8860b' }}></i>
                           <span className="fw-600 text-16">Primera Clase</span>
+                          <span className="text-14 text-light-1">({disponibilidad.disponibilidadAsientos?.primeraTotal || 0} asientos)</span>
                         </div>
                         <span className="fw-600" style={{ color: getColorOcupacion(disponibilidad.disponibilidadAsientos?.primeraPorcentajeOcupacion || 0).color }}>
                           {disponibilidad.disponibilidadAsientos?.primeraPorcentajeOcupacion?.toFixed(1) || 0}% ocupado
@@ -421,6 +494,7 @@ const GestionAeronaves = () => {
                         <div className="d-flex items-center gap-10">
                           <i className="icon-briefcase text-20" style={{ color: '#3f51b5' }}></i>
                           <span className="fw-600 text-16">Clase Ejecutiva</span>
+                          <span className="text-14 text-light-1">({disponibilidad.disponibilidadAsientos?.ejecutivaTotal || 0} asientos)</span>
                         </div>
                         <span className="fw-600" style={{ color: getColorOcupacion(disponibilidad.disponibilidadAsientos?.ejecutivaPorcentajeOcupacion || 0).color }}>
                           {disponibilidad.disponibilidadAsientos?.ejecutivaPorcentajeOcupacion?.toFixed(1) || 0}% ocupado
@@ -457,6 +531,7 @@ const GestionAeronaves = () => {
                         <div className="d-flex items-center gap-10">
                           <i className="icon-users text-20" style={{ color: '#00897b' }}></i>
                           <span className="fw-600 text-16">Clase Económica</span>
+                          <span className="text-14 text-light-1">({disponibilidad.disponibilidadAsientos?.economicaTotal || 0} asientos)</span>
                         </div>
                         <span className="fw-600" style={{ color: getColorOcupacion(disponibilidad.disponibilidadAsientos?.economicaPorcentajeOcupacion || 0).color }}>
                           {disponibilidad.disponibilidadAsientos?.economicaPorcentajeOcupacion?.toFixed(1) || 0}% ocupado
