@@ -12,7 +12,7 @@ import {
   eliminarVuelo 
 } from "@/api/vueloAdminService";
 import { obtenerAeropuertos } from "@/api/aeropuertoService";
-import { obtenerAeronavesDisponibles } from "@/api/aeronaveService";
+import { obtenerTodasLasAeronaves } from "@/api/aeronaveService";
 
 // Función para formatear hora a formato 12h con AM/PM
 const formatearHora12h = (hora) => {
@@ -100,7 +100,7 @@ const GestionVuelos = () => {
       }
 
       try {
-        const response = await obtenerAeronavesDisponibles();
+        const response = await obtenerTodasLasAeronaves();
         console.log('Respuesta aeronaves:', response);
         aeronavesData = Array.isArray(response) ? response : (response.data || response.aeronaves || []);
       } catch (err) {

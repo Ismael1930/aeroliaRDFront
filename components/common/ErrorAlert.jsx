@@ -45,6 +45,11 @@ const ErrorAlert = ({ error, onClose, autoClose = false, autoCloseTime = 10000 }
   // Extraer información del error
   const getMessage = () => {
     if (typeof error === 'string') return error;
+    
+    // Priorizar mensaje del backend cuando success: false
+    // Formato: { success: false, message: "..." }
+    if (error.response?.data?.message) return error.response.data.message;
+    
     // Priorizar mensaje específico de errores del backend (response.data.errors[0].mensaje)
     if (error.errors?.[0]?.mensaje) return error.errors[0].mensaje;
     if (error.data?.errors?.[0]?.mensaje) return error.data.errors[0].mensaje;
