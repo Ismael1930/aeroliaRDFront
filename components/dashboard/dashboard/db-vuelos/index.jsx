@@ -36,18 +36,42 @@ const vueloFechaPasada = (vuelo) => {
   const ahora = new Date();
   const fechaVuelo = new Date(vuelo.fecha);
   
-  // Si el vuelo tiene hora de salida, crear fecha completa con hora
+  // Verificar fecha de salida con hora
+  let fechaSalidaPasada = false;
   if (vuelo.horaSalida) {
     const [horas, minutos] = vuelo.horaSalida.split(':');
     fechaVuelo.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
-    return fechaVuelo < ahora;
+    fechaSalidaPasada = fechaVuelo < ahora;
   } else {
     // Si no hay hora, comparar solo fechas
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     fechaVuelo.setHours(0, 0, 0, 0);
-    return fechaVuelo < hoy;
+    fechaSalidaPasada = fechaVuelo < hoy;
   }
+  
+  // Si es ida y vuelta, verificar AMBAS fechas
+  if (vuelo.tipoVuelo === 'IdaYVuelta' && vuelo.fechaRegreso) {
+    const fechaRegresoVuelo = new Date(vuelo.fechaRegreso);
+    let fechaRegresoPasada = false;
+    
+    if (vuelo.horaSalida) {
+      const [horas, minutos] = vuelo.horaSalida.split(':');
+      fechaRegresoVuelo.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+      fechaRegresoPasada = fechaRegresoVuelo < ahora;
+    } else {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      fechaRegresoVuelo.setHours(0, 0, 0, 0);
+      fechaRegresoPasada = fechaRegresoVuelo < hoy;
+    }
+    
+    // Retornar true solo si AMBAS fechas han pasado
+    return fechaSalidaPasada && fechaRegresoPasada;
+  }
+  
+  // Para solo ida, retornar si la fecha de salida pasó
+  return fechaSalidaPasada;
 };
 
 const GestionVuelos = () => {
@@ -517,7 +541,13 @@ const GestionVuelos = () => {
                       {vuelosActuales.map((vuelo, index) => {
                         const fechaPasada = vueloFechaPasada(vuelo);
                         return (
-                        <tr key={vuelo.id || `vuelo-${index}`}>
+                        <tr 
+                          key={vuelo.id || `vuelo-${index}`}
+                          style={fechaPasada ? {
+                            backgroundColor: '#f5f5f5',
+                            opacity: '0.8'
+                          } : {}}
+                        >
                           <td className="fw-500">{vuelo.numeroVuelo}</td>
                           <td>
                             <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
@@ -539,6 +569,11 @@ const GestionVuelos = () => {
                             <div className="text-14 text-light-1">{vuelo.destinoNombre}</div>
                           </td>
                           <td>
+                            {fechaPasada && (
+                              <div className="text-12 text-red-2 fw-500 mb-5">
+                                ⚠️ Vencido - Actualizar o eliminar
+                              </div>
+                            )}
                             {fechaPasada && (
                               <i 
                                 className="icon-alert-circle text-16 mr-5" 
