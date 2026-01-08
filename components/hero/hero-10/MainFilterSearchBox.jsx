@@ -99,13 +99,61 @@ const MainFilterSearchBox = ({ claseSeleccionada, tipoViaje, maletas, onSearchCo
         vuelos = response;
       }
 
-      // Guardar resultados en localStorage
-      localStorage.setItem('resultadosVuelos', JSON.stringify(vuelos));
+      // Filtrar vuelos con fechas pasadas (considerando fecha y hora)
+      const fechaYaPaso = (vuelo) => {
+        if (!vuelo.fecha) return false;
+        
+        const ahora = new Date();
+        const fechaVuelo = new Date(vuelo.fecha);
+        
+        // Si el vuelo tiene hora de salida, crear fecha completa con hora
+        if (vuelo.horaSalida) {
+          const [horas, minutos] = vuelo.horaSalida.split(':');
+          fechaVuelo.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+          
+          // Para vuelos de ida: comparar fecha + hora de salida
+          if (fechaVuelo < ahora) {
+            return true;
+          }
+        } else {
+          // Si no hay hora, comparar solo fechas
+          const hoy = new Date();
+          hoy.setHours(0, 0, 0, 0);
+          fechaVuelo.setHours(0, 0, 0, 0);
+          if (fechaVuelo < hoy) {
+            return true;
+          }
+        }
+        
+        // Si es ida y vuelta, verificar también la fecha de regreso
+        if (vuelo.tipoVuelo === 'IdaYVuelta' && vuelo.fechaRegreso) {
+          const fechaRegresoVuelo = new Date(vuelo.fechaRegreso);
+          
+          if (vuelo.horaSalida) {
+            const [horas, minutos] = vuelo.horaSalida.split(':');
+            fechaRegresoVuelo.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+            return fechaRegresoVuelo < ahora;
+          } else {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            fechaRegresoVuelo.setHours(0, 0, 0, 0);
+            return fechaRegresoVuelo < hoy;
+          }
+        }
+        
+        return false;
+      };
+
+      // Filtrar vuelos vigentes (que no hayan pasado)
+      const vuelosVigentes = vuelos.filter(vuelo => !fechaYaPaso(vuelo));
+
+      // Guardar resultados filtrados en localStorage
+      localStorage.setItem('resultadosVuelos', JSON.stringify(vuelosVigentes));
       localStorage.removeItem('errorBusqueda');
 
       // Si hay callback, actualizar sin navegar
       if (onSearchComplete) {
-        onSearchComplete(vuelos);
+        onSearchComplete(vuelosVigentes);
       } else {
         // Si no hay callback, navegar a la página de resultados
         router.push('/flight-list-v1');

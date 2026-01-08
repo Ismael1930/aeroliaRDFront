@@ -728,6 +728,10 @@ const FlightBookingPage = () => {
 
                       <div className="col-md-12">
                         <label className="text-14 fw-500 mb-10 d-block">Número de Asiento</label>
+                        <div className="text-13 text-light-1 mb-10">
+                          <i className="icon-info-circle mr-5"></i>
+                          Solo se muestran asientos disponibles. Los asientos reservados por otros clientes no aparecen.
+                        </div>
                         {cargandoAsientos ? (
                           <div className="d-flex items-center justify-center py-20">
                             <div className="text-15 text-light-1">Cargando asientos disponibles...</div>

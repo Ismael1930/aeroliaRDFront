@@ -11,6 +11,51 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
   const [vuelosOriginales, setVuelosOriginales] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Función para verificar si una fecha ya pasó (considerando fecha y hora)
+  const fechaYaPaso = (vuelo) => {
+    if (!vuelo.fecha) return false;
+    
+    const ahora = new Date();
+    const fechaVuelo = new Date(vuelo.fecha);
+    
+    // Si el vuelo tiene hora de salida, crear fecha completa con hora
+    if (vuelo.horaSalida) {
+      const [horas, minutos] = vuelo.horaSalida.split(':');
+      fechaVuelo.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+      
+      // Para vuelos de ida: comparar fecha + hora de salida
+      if (fechaVuelo < ahora) {
+        return true;
+      }
+    } else {
+      // Si no hay hora, comparar solo fechas
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      fechaVuelo.setHours(0, 0, 0, 0);
+      if (fechaVuelo < hoy) {
+        return true;
+      }
+    }
+    
+    // Si es ida y vuelta, verificar también la fecha de regreso
+    if (vuelo.tipoVuelo === 'IdaYVuelta' && vuelo.fechaRegreso) {
+      const fechaRegresoVuelo = new Date(vuelo.fechaRegreso);
+      
+      if (vuelo.horaSalida) {
+        const [horas, minutos] = vuelo.horaSalida.split(':');
+        fechaRegresoVuelo.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+        return fechaRegresoVuelo < ahora;
+      } else {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        fechaRegresoVuelo.setHours(0, 0, 0, 0);
+        return fechaRegresoVuelo < hoy;
+      }
+    }
+    
+    return false;
+  };
+
   const handleReservar = (vueloId) => {
     if (!isAuth) {
       // Guardar URL de retorno y redirigir al login
@@ -29,8 +74,10 @@ const FlightProperties = ({ sortBy = 'precio-asc', currentPage = 1, itemsPerPage
       try {
         const data = JSON.parse(resultados);
         const vuelosData = Array.isArray(data) ? data : [];
-        setVuelosOriginales(vuelosData);
-        setVuelos(vuelosData);
+        // Filtrar vuelos cuya fecha ya pasó
+        const vuelosVigentes = vuelosData.filter(vuelo => !fechaYaPaso(vuelo));
+        setVuelosOriginales(vuelosVigentes);
+        setVuelos(vuelosVigentes);
       } catch (error) {
         console.error('Error al parsear resultados:', error);
         setVuelos([]);

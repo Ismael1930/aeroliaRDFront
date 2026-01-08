@@ -29,6 +29,27 @@ const formatearHora12h = (hora) => {
   return hora;
 };
 
+// Función para verificar si la fecha del vuelo ya pasó (considerando fecha y hora)
+const vueloFechaPasada = (vuelo) => {
+  if (!vuelo.fecha) return false;
+  
+  const ahora = new Date();
+  const fechaVuelo = new Date(vuelo.fecha);
+  
+  // Si el vuelo tiene hora de salida, crear fecha completa con hora
+  if (vuelo.horaSalida) {
+    const [horas, minutos] = vuelo.horaSalida.split(':');
+    fechaVuelo.setHours(parseInt(horas, 10), parseInt(minutos, 10), 0, 0);
+    return fechaVuelo < ahora;
+  } else {
+    // Si no hay hora, comparar solo fechas
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    fechaVuelo.setHours(0, 0, 0, 0);
+    return fechaVuelo < hoy;
+  }
+};
+
 const GestionVuelos = () => {
   const [vuelos, setVuelos] = useState([]);
   const [aeropuertos, setAeropuertos] = useState([]);
@@ -195,6 +216,11 @@ const GestionVuelos = () => {
   };
 
   const abrirModalEditar = (vuelo) => {
+    // Verificar si el vuelo tiene fecha pasada
+    if (vueloFechaPasada(vuelo)) {
+      alert('⚠️ ADVERTENCIA: Este vuelo tiene una fecha que ya pasó.\n\nPor favor, actualice la fecha y hora del vuelo antes de realizar cualquier modificación.');
+    }
+    
     setModoEdicion(true);
     setVueloSeleccionado(vuelo);
     
@@ -338,8 +364,22 @@ const GestionVuelos = () => {
       cargarDatos();
     } catch (error) {
       console.error('Error al guardar vuelo:', error);
-      // Pasar el AxiosError completo para que ErrorAlert extraiga response.data.errors[0].mensaje
-      setModalError(error);
+      
+      // Extraer mensaje de error del backend
+      let mensajeError = 'Error al guardar el vuelo';
+      
+      if (error.response?.data?.errors?.[0]?.mensaje) {
+        // Si hay errores de validación del backend
+        mensajeError = error.response.data.errors[0].mensaje;
+      } else if (error.response?.data?.message) {
+        // Si hay un mensaje general del backend
+        mensajeError = error.response.data.message;
+      } else if (error.message) {
+        // Si hay un mensaje de error de Axios
+        mensajeError = error.message;
+      }
+      
+      setModalError(mensajeError);
     }
   };
 
@@ -352,8 +392,19 @@ const GestionVuelos = () => {
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar vuelo:', error);
-      const errorData = error.response?.data || error;
-      setError(errorData);
+      
+      // Extraer mensaje de error del backend
+      let mensajeError = 'Error al eliminar el vuelo';
+      
+      if (error.response?.data?.errors?.[0]?.mensaje) {
+        mensajeError = error.response.data.errors[0].mensaje;
+      } else if (error.response?.data?.message) {
+        mensajeError = error.response.data.message;
+      } else if (error.message) {
+        mensajeError = error.message;
+      }
+      
+      setError(mensajeError);
     }
   };
 
@@ -449,10 +500,12 @@ const GestionVuelos = () => {
                     <thead className="bg-light-2">
                       <tr>
                         <th>Número de Vuelo</th>
+                        <th>Tipo de Vuelo</th>
                         <th>Aeronave</th>
                         <th>Origen</th>
                         <th>Destino</th>
-                        <th>Fecha</th>
+                        <th>Fecha Salida</th>
+                        <th>Fecha Regreso</th>
                         <th>Salida</th>
                         <th>Llegada</th>
                         <th>Precio Base</th>
@@ -461,9 +514,18 @@ const GestionVuelos = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {vuelosActuales.map((vuelo, index) => (
+                      {vuelosActuales.map((vuelo, index) => {
+                        const fechaPasada = vueloFechaPasada(vuelo);
+                        return (
                         <tr key={vuelo.id || `vuelo-${index}`}>
                           <td className="fw-500">{vuelo.numeroVuelo}</td>
+                          <td>
+                            <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
+                              vuelo.tipoVuelo === 'IdaYVuelta' ? 'bg-blue-1-05 text-blue-1' : 'bg-yellow-4 text-yellow-3'
+                            }`}>
+                              {vuelo.tipoVuelo === 'IdaYVuelta' ? 'Ida y Vuelta' : 'Solo Ida'}
+                            </span>
+                          </td>
                           <td>
                             <div className="fw-500">{vuelo.aeronave?.modelo || 'Sin asignar'}</div>
                             <div className="text-14 text-light-1">{vuelo.aeronave?.matricula || '-'}</div>
@@ -476,7 +538,24 @@ const GestionVuelos = () => {
                             <div className="fw-500">{vuelo.destinoCodigo}</div>
                             <div className="text-14 text-light-1">{vuelo.destinoNombre}</div>
                           </td>
-                          <td>{new Date(vuelo.fecha).toLocaleDateString('es-ES')}</td>
+                          <td>
+                            {fechaPasada && (
+                              <i 
+                                className="icon-alert-circle text-16 mr-5" 
+                                style={{ color: '#ffc107', cursor: 'pointer' }} 
+                                title="Fecha vencida - Clic para más información"
+                                onClick={() => alert('⚠️ ADVERTENCIA: Este vuelo tiene una fecha que ya pasó.\n\nPor favor, actualice la fecha y hora del vuelo.')}
+                              ></i>
+                            )}
+                            {new Date(vuelo.fecha).toLocaleDateString('es-ES')}
+                          </td>
+                          <td>
+                            {vuelo.tipoVuelo === 'IdaYVuelta' && vuelo.fechaRegreso ? (
+                              <span>{new Date(vuelo.fechaRegreso).toLocaleDateString('es-ES')}</span>
+                            ) : (
+                              <span className="text-14 text-light-1">-</span>
+                            )}
+                          </td>
                           <td>{formatearHora12h(vuelo.horaSalida)}</td>
                           <td>{formatearHora12h(vuelo.horaLlegada)}</td>
                           <td className="fw-500">US${vuelo.precioBase?.toFixed(2) || '0.00'}</td>
@@ -509,7 +588,8 @@ const GestionVuelos = () => {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
 
