@@ -233,7 +233,6 @@ const GestionVuelos = () => {
       duracion: '',
       precioBase: '',
       tipoVuelo: 'IdaYVuelta',
-      clase: 'Economica',
       estado: 'Programado'
     });
     setMostrarModal(true);
@@ -274,7 +273,6 @@ const GestionVuelos = () => {
       duracion: vuelo.duracion || '',
       precioBase: vuelo.precioBase,
       tipoVuelo: vuelo.tipoVuelo || 'IdaYVuelta',
-      clase: vuelo.clase || 'Economica',
       estado: vuelo.estado || 'Programado'
     });
     setMostrarModal(true);
@@ -979,26 +977,6 @@ const GestionVuelos = () => {
                     )}
                   </div>
                 )}
-
-                <div className="col-md-6">
-                  <label className="text-14 fw-500 mb-10 d-block">Clase</label>
-                  <select
-                    className="form-select"
-                    value={formulario.clase}
-                    onChange={(e) => setFormulario({...formulario, clase: e.target.value})}
-                    style={{
-                      width: '100%',
-                      height: '50px',
-                      padding: '0 20px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    <option value="Economica">Económica</option>
-                    <option value="Ejecutiva">Ejecutiva</option>
-                    <option value="Primera">Primera</option>
-                  </select>
-                </div>
 
                 <div className="col-12 mt-20">
                   <div className="d-flex gap-10 justify-end">
