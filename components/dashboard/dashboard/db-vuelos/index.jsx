@@ -485,7 +485,10 @@ const GestionVuelos = () => {
                     placeholder="Buscar por número de vuelo"
                     className="form-control"
                     value={filtro}
-                    onChange={(e) => setFiltro(e.target.value)}
+                    onChange={(e) => {
+                      setFiltro(e.target.value);
+                      setPaginaActual(1);
+                    }}
                     style={{
                       width: '100%',
                       height: '50px',
@@ -589,15 +592,15 @@ const GestionVuelos = () => {
                               <span className="text-14 text-light-1">-</span>
                             )}
                           </td>
-                          <td>{formatearHora(vuelo.horaSalida)}</td>
-                          <td>{formatearHora(vuelo.horaLlegada)}</td>
+                          <td>{vuelo.horaSalidaFormato || formatearHora(vuelo.horaSalida)}</td>
+                          <td>{vuelo.horaLlegadaFormato || formatearHora(vuelo.horaLlegada)}</td>
                           <td className="fw-500">US${vuelo.precioBase?.toFixed(2) || '0.00'}</td>
                           <td>
                             <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
                               vuelo.estado === 'Programado' ? 'bg-blue-1-05 text-blue-1' :
                               vuelo.estado === 'En Vuelo' ? 'bg-yellow-4 text-yellow-3' :
                               vuelo.estado === 'Aterrizado' ? 'bg-purple-1-05 text-purple-1' :
-                              vuelo.estado === 'Completado' ? 'bg-green-1 text-white' :
+                              vuelo.estado === 'Completado' ? 'bg-green-2 text-white' :
                               vuelo.estado === 'Cancelado' ? 'bg-red-3 text-red-2' :
                               'bg-light-2 text-light-1'
                             }`}>
