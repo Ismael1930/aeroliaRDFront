@@ -328,11 +328,15 @@ const GestionAeronaves = () => {
                                 className="rounded-100 py-2 px-8 text-10 fw-500"
                                 style={{ 
                                   backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' :
-                                    aeronave.estado === 'Disponible' || aeronave.estado === 'Operativa' ? '#e8f5e9' :
-                                    aeronave.estado === 'Mantenimiento' ? '#fff3e0' : '#ffebee',
+                                    aeronave.estado === 'Operativa' ? '#e8f5e9' :
+                                    aeronave.estado === 'En Vuelo' ? '#fff9c4' :
+                                    aeronave.estado === 'En Mantenimiento' ? '#fff3e0' :
+                                    aeronave.estado === 'Mantenimiento' ? '#ffe0b2' : '#ffebee',
                                   color: aeronaveSeleccionada === aeronave.matricula ? 'white' :
-                                    aeronave.estado === 'Disponible' || aeronave.estado === 'Operativa' ? '#2e7d32' :
-                                    aeronave.estado === 'Mantenimiento' ? '#e65100' : '#c62828'
+                                    aeronave.estado === 'Operativa' ? '#2e7d32' :
+                                    aeronave.estado === 'En Vuelo' ? '#f57c00' :
+                                    aeronave.estado === 'En Mantenimiento' ? '#e65100' :
+                                    aeronave.estado === 'Mantenimiento' ? '#ef6c00' : '#c62828'
                                 }}
                               >
                                 {aeronave.estado}
@@ -340,17 +344,29 @@ const GestionAeronaves = () => {
                               <div className="d-flex gap-5">
                                 <button
                                   className="flex-center rounded-4 size-25"
-                                  style={{ backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' : '#e3f2fd' }}
-                                  onClick={(e) => abrirModalEditar(aeronave, e)}
-                                  title="Editar"
+                                  style={{ 
+                                    backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' : 
+                                      aeronave.estado === 'En Vuelo' ? '#e0e0e0' : '#e3f2fd',
+                                    opacity: aeronave.estado === 'En Vuelo' ? 0.5 : 1,
+                                    cursor: aeronave.estado === 'En Vuelo' ? 'not-allowed' : 'pointer'
+                                  }}
+                                  onClick={(e) => aeronave.estado !== 'En Vuelo' && abrirModalEditar(aeronave, e)}
+                                  disabled={aeronave.estado === 'En Vuelo'}
+                                  title={aeronave.estado === 'En Vuelo' ? 'No se puede editar una aeronave en vuelo' : 'Editar'}
                                 >
                                   <i className={`icon-edit text-12 ${aeronaveSeleccionada === aeronave.matricula ? 'text-white' : 'text-blue-1'}`}></i>
                                 </button>
                                 <button
                                   className="flex-center rounded-4 size-25"
-                                  style={{ backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' : '#ffebee' }}
-                                  onClick={(e) => handleEliminar(aeronave.matricula, e)}
-                                  title="Eliminar"
+                                  style={{ 
+                                    backgroundColor: aeronaveSeleccionada === aeronave.matricula ? 'rgba(255,255,255,0.2)' : 
+                                      aeronave.estado === 'En Vuelo' ? '#e0e0e0' : '#ffebee',
+                                    opacity: aeronave.estado === 'En Vuelo' ? 0.5 : 1,
+                                    cursor: aeronave.estado === 'En Vuelo' ? 'not-allowed' : 'pointer'
+                                  }}
+                                  onClick={(e) => aeronave.estado !== 'En Vuelo' && handleEliminar(aeronave.matricula, e)}
+                                  disabled={aeronave.estado === 'En Vuelo'}
+                                  title={aeronave.estado === 'En Vuelo' ? 'No se puede eliminar una aeronave en vuelo' : 'Eliminar'}
                                 >
                                   <i className={`icon-trash-2 text-12 ${aeronaveSeleccionada === aeronave.matricula ? 'text-white' : 'text-red-1'}`}></i>
                                 </button>
@@ -697,11 +713,13 @@ const GestionAeronaves = () => {
                       borderRadius: '4px'
                     }}
                   >
-                    <option value="Disponible">Disponible</option>
                     <option value="Operativa">Operativa</option>
-                    <option value="Mantenimiento">Mantenimiento</option>
+                    <option value="Mantenimiento">Mantenimiento (Manual)</option>
                     <option value="FueraDeServicio">Fuera de Servicio</option>
                   </select>
+                  <small className="text-14 text-light-1 mt-5 d-block">
+                    Nota: "En Vuelo" y "En Mantenimiento" se actualizan automáticamente
+                  </small>
                 </div>
               </div>
 

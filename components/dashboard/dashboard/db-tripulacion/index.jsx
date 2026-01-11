@@ -775,18 +775,28 @@ const GestionTripulacion = () => {
                                 <td>
                                   <div className="d-flex items-center gap-10">
                                     <button
-                                      className="flex-center bg-light-2 rounded-4 size-35"
-                                      onClick={() => abrirModalEditar(miembro)}
-                                      title="Editar"
+                                      className={`flex-center rounded-4 size-35 ${
+                                        miembro.estado === 'En Servicio' ? 'bg-light-3 cursor-not-allowed' : 'bg-light-2'
+                                      }`}
+                                      onClick={() => miembro.estado !== 'En Servicio' && abrirModalEditar(miembro)}
+                                      disabled={miembro.estado === 'En Servicio'}
+                                      title={miembro.estado === 'En Servicio' ? 'No se puede editar personal en servicio' : 'Editar'}
+                                      style={{ opacity: miembro.estado === 'En Servicio' ? 0.5 : 1 }}
                                     >
                                       <i className="icon-edit text-16 text-light-1"></i>
                                     </button>
                                     <button
-                                      className="flex-center bg-red-3 rounded-4 size-35"
-                                      onClick={() => handleEliminar(miembroId)}
-                                      title="Eliminar"
+                                      className={`flex-center rounded-4 size-35 ${
+                                        miembro.estado === 'En Servicio' ? 'bg-light-3 cursor-not-allowed' : 'bg-red-3'
+                                      }`}
+                                      onClick={() => miembro.estado !== 'En Servicio' && handleEliminar(miembroId)}
+                                      disabled={miembro.estado === 'En Servicio'}
+                                      title={miembro.estado === 'En Servicio' ? 'No se puede eliminar personal en servicio' : 'Eliminar'}
+                                      style={{ opacity: miembro.estado === 'En Servicio' ? 0.5 : 1 }}
                                     >
-                                      <i className="icon-trash-2 text-16 text-red-2"></i>
+                                      <i className={`icon-trash-2 text-16 ${
+                                        miembro.estado === 'En Servicio' ? 'text-light-1' : 'text-red-2'
+                                      }`}></i>
                                     </button>
                                   </div>
                                 </td>
@@ -959,18 +969,28 @@ const GestionTripulacion = () => {
                               </div>
                               <div className="d-flex gap-10">
                                 <button
-                                  className="flex-center bg-light-2 rounded-4 size-35"
-                                  onClick={() => abrirModalEditarEquipo(equipo)}
-                                  title="Editar"
+                                  className={`flex-center rounded-4 size-35 ${
+                                    equipo.estado === 'En Servicio' ? 'bg-light-3 cursor-not-allowed' : 'bg-light-2'
+                                  }`}
+                                  onClick={() => equipo.estado !== 'En Servicio' && abrirModalEditarEquipo(equipo)}
+                                  disabled={equipo.estado === 'En Servicio'}
+                                  title={equipo.estado === 'En Servicio' ? 'No se puede editar un equipo en servicio' : 'Editar'}
+                                  style={{ opacity: equipo.estado === 'En Servicio' ? 0.5 : 1 }}
                                 >
                                   <i className="icon-edit text-16 text-light-1"></i>
                                 </button>
                                 <button
-                                  className="flex-center bg-red-3 rounded-4 size-35"
-                                  onClick={() => handleEliminarEquipo(equipoId)}
-                                  title="Eliminar"
+                                  className={`flex-center rounded-4 size-35 ${
+                                    equipo.estado === 'En Servicio' ? 'bg-light-3 cursor-not-allowed' : 'bg-red-3'
+                                  }`}
+                                  onClick={() => equipo.estado !== 'En Servicio' && handleEliminarEquipo(equipoId)}
+                                  disabled={equipo.estado === 'En Servicio'}
+                                  title={equipo.estado === 'En Servicio' ? 'No se puede eliminar un equipo en servicio' : 'Eliminar'}
+                                  style={{ opacity: equipo.estado === 'En Servicio' ? 0.5 : 1 }}
                                 >
-                                  <i className="icon-trash-2 text-16 text-red-2"></i>
+                                  <i className={`icon-trash-2 text-16 ${
+                                    equipo.estado === 'En Servicio' ? 'text-light-1' : 'text-red-2'
+                                  }`}></i>
                                 </button>
                               </div>
                             </div>
@@ -1132,16 +1152,29 @@ const GestionTripulacion = () => {
                                         {equipo && asignacionId ? (
                                           <button
                                             className="button h-35 px-15 text-14 text-white"
-                                            style={{ backgroundColor: '#dc3545', border: 'none' }}
-                                            onClick={() => quitarAsignacion(asignacionId, aeronave.matricula)}
+                                            style={{ 
+                                              backgroundColor: aeronave.estado === 'En Vuelo' ? '#9e9e9e' : '#dc3545', 
+                                              border: 'none',
+                                              opacity: aeronave.estado === 'En Vuelo' ? 0.5 : 1,
+                                              cursor: aeronave.estado === 'En Vuelo' ? 'not-allowed' : 'pointer'
+                                            }}
+                                            onClick={() => aeronave.estado !== 'En Vuelo' && quitarAsignacion(asignacionId, aeronave.matricula)}
+                                            disabled={aeronave.estado === 'En Vuelo'}
+                                            title={aeronave.estado === 'En Vuelo' ? 'No se puede quitar equipo de aeronave en vuelo' : 'Quitar equipo'}
                                           >
                                             Quitar
                                           </button>
                                         ) : null}
                                         <button
-                                          className="button h-35 px-15 -dark-1 bg-blue-1 text-white text-14"
-                                          onClick={() => abrirModalAsignacion(aeronave)}
-                                          disabled={equipos.length === 0}
+                                          className="button h-35 px-15 -dark-1 text-white text-14"
+                                          style={{
+                                            backgroundColor: aeronave.estado === 'En Vuelo' ? '#9e9e9e' : '#1a2b49',
+                                            opacity: (equipos.length === 0 || aeronave.estado === 'En Vuelo') ? 0.5 : 1,
+                                            cursor: (equipos.length === 0 || aeronave.estado === 'En Vuelo') ? 'not-allowed' : 'pointer'
+                                          }}
+                                          onClick={() => aeronave.estado !== 'En Vuelo' && abrirModalAsignacion(aeronave)}
+                                          disabled={equipos.length === 0 || aeronave.estado === 'En Vuelo'}
+                                          title={aeronave.estado === 'En Vuelo' ? 'No se puede cambiar equipo de aeronave en vuelo' : ''}
                                         >
                                           {equipo ? 'Cambiar' : 'Asignar'}
                                         </button>

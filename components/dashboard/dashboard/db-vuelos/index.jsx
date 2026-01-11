@@ -5,6 +5,7 @@ import Sidebar from "../common/Sidebar";
 import Header from "@/components/header/dashboard-header";
 import Footer from "../common/Footer";
 import ErrorAlert, { SuccessAlert } from "@/components/common/ErrorAlert";
+import EstadosInfo from "../common/EstadosInfo";
 import { 
   obtenerTodosLosVuelos, 
   crearVuelo, 
@@ -14,17 +15,15 @@ import {
 import { obtenerAeropuertos } from "@/api/aeropuertoService";
 import { obtenerTodasLasAeronaves } from "@/api/aeronaveService";
 
-// Función para formatear hora a formato 12h con AM/PM
-const formatearHora12h = (hora) => {
+// Función para formatear hora a formato 24h (HH:mm)
+const formatearHora = (hora) => {
   if (!hora) return '-';
-  const partes = hora.split(':');
-  if (partes.length >= 2) {
-    let horas = parseInt(partes[0], 10);
-    const minutos = partes[1].padStart(2, '0');
-    const periodo = horas >= 12 ? 'PM' : 'AM';
-    horas = horas % 12;
-    if (horas === 0) horas = 12;
-    return `${horas}:${minutos} ${periodo}`;
+  // Si viene como "HH:mm:ss", retornar "HH:mm"
+  if (typeof hora === 'string' && hora.includes(':')) {
+    const partes = hora.split(':');
+    if (partes.length >= 2) {
+      return `${partes[0].padStart(2, '0')}:${partes[1].padStart(2, '0')}`;
+    }
   }
   return hora;
 };
@@ -233,7 +232,7 @@ const GestionVuelos = () => {
       duracion: '',
       precioBase: '',
       tipoVuelo: 'IdaYVuelta',
-      estado: 'Programado'
+      estado: 'Programado' // Solo Programado al crear nuevos vuelos
     });
     setMostrarModal(true);
   };
@@ -478,6 +477,7 @@ const GestionVuelos = () => {
 
             {/* Filtros */}
             <div className="py-30 px-30 rounded-4 bg-white shadow-3 mb-30">
+              <EstadosInfo />
               <div className="row y-gap-20">
                 <div className="col-12">
                   <input
@@ -589,15 +589,17 @@ const GestionVuelos = () => {
                               <span className="text-14 text-light-1">-</span>
                             )}
                           </td>
-                          <td>{formatearHora12h(vuelo.horaSalida)}</td>
-                          <td>{formatearHora12h(vuelo.horaLlegada)}</td>
+                          <td>{formatearHora(vuelo.horaSalida)}</td>
+                          <td>{formatearHora(vuelo.horaLlegada)}</td>
                           <td className="fw-500">US${vuelo.precioBase?.toFixed(2) || '0.00'}</td>
                           <td>
                             <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
                               vuelo.estado === 'Programado' ? 'bg-blue-1-05 text-blue-1' :
                               vuelo.estado === 'En Vuelo' ? 'bg-yellow-4 text-yellow-3' :
+                              vuelo.estado === 'Aterrizado' ? 'bg-purple-1-05 text-purple-1' :
                               vuelo.estado === 'Completado' ? 'bg-green-1 text-white' :
-                              'bg-red-3 text-red-2'
+                              vuelo.estado === 'Cancelado' ? 'bg-red-3 text-red-2' :
+                              'bg-light-2 text-light-1'
                             }`}>
                               {vuelo.estado}
                             </span>
@@ -605,18 +607,28 @@ const GestionVuelos = () => {
                           <td>
                             <div className="d-flex items-center gap-10">
                               <button
-                                className="flex-center bg-light-2 rounded-4 size-35"
-                                onClick={() => abrirModalEditar(vuelo)}
-                                title="Editar"
+                                className={`flex-center rounded-4 size-35 ${
+                                  vuelo.estado === 'En Vuelo' ? 'bg-light-3 cursor-not-allowed' : 'bg-light-2'
+                                }`}
+                                onClick={() => vuelo.estado !== 'En Vuelo' && abrirModalEditar(vuelo)}
+                                disabled={vuelo.estado === 'En Vuelo'}
+                                title={vuelo.estado === 'En Vuelo' ? 'No se puede editar un vuelo en curso' : 'Editar'}
+                                style={{ opacity: vuelo.estado === 'En Vuelo' ? 0.5 : 1 }}
                               >
                                 <i className="icon-edit text-16 text-light-1"></i>
                               </button>
                               <button
-                                className="flex-center bg-red-3 rounded-4 size-35"
-                                onClick={() => handleEliminar(vuelo.id)}
-                                title="Eliminar"
+                                className={`flex-center rounded-4 size-35 ${
+                                  vuelo.estado === 'En Vuelo' ? 'bg-light-3 cursor-not-allowed' : 'bg-red-3'
+                                }`}
+                                onClick={() => vuelo.estado !== 'En Vuelo' && handleEliminar(vuelo.id)}
+                                disabled={vuelo.estado === 'En Vuelo'}
+                                title={vuelo.estado === 'En Vuelo' ? 'No se puede eliminar un vuelo en curso' : 'Eliminar'}
+                                style={{ opacity: vuelo.estado === 'En Vuelo' ? 0.5 : 1 }}
                               >
-                                <i className="icon-trash-2 text-16 text-red-2"></i>
+                                <i className={`icon-trash-2 text-16 ${
+                                  vuelo.estado === 'En Vuelo' ? 'text-light-1' : 'text-red-2'
+                                }`}></i>
                               </button>
                             </div>
                           </td>

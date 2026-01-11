@@ -17,108 +17,64 @@ const FlightBookingPage = () => {
     const styleTag = document.createElement('style');
     styleTag.innerHTML = `
       @media print {
-        /* Resetear estilos de body y html */
         @page {
-          margin: 0.5cm;
+          margin: 0;
+          size: auto;
+        }
+
+        /* Ocultar todo el contenido marcado con la clase print-hidden */
+        .print-hidden {
+          display: none !important;
         }
         
-        * {
+        /* Asegurar que el modal sea visible y ocupe todo el espacio */
+        .comprobante-modal-content {
+          display: block !important;
+          visibility: visible !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
           margin: 0 !important;
-          padding: 0 !important;
+          padding: 20px !important;
+          background-color: white !important;
+          box-shadow: none !important;
+          max-width: none !important;
         }
-        
-        html, body {
+
+        /* El backdrop no se necesita en impresión */
+        .modal-backdrop {
+          position: static !important;
+          background-color: transparent !important;
+          display: block !important;
           height: auto !important;
           width: 100% !important;
         }
-        
-        /* Ocultar TODO excepto el modal */
-        body > *:not(.modal-backdrop) {
-          display: none !important;
-        }
-        
-        /* El backdrop debe comportarse como contenedor transparente */
-        .modal-backdrop {
-          all: unset !important;
-          display: block !important;
-          position: static !important;
-          width: 100% !important;
-        }
-        
-        /* Estilos específicos para el contenido del modal en impresión */
-        .comprobante-modal-content {
-          all: unset !important;
-          display: block !important;
-          width: 100% !important;
-          font-family: inherit !important;
-        }
-        
-        /* Ocultar botones en impresión */
+
+        /* Ocultar botones y elementos decorativos no deseados */
         .no-print {
           display: none !important;
         }
-        
-        /* Restaurar estilos necesarios */
-        .text-center {
-          text-align: center !important;
+
+        /* Asegurar colores de fondo */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
+
+        /* Ajustes básicos de estilos para que se vea bien impreso */
+        .row { display: flex !important; flex-wrap: wrap !important; }
+        .col-6 { width: 50% !important; flex: 0 0 50% !important; }
+        .col-12 { width: 100% !important; flex: 0 0 100% !important; }
         
-        .mb-30 { margin-bottom: 15px !important; }
-        .mb-20 { margin-bottom: 10px !important; }
-        .mb-15 { margin-bottom: 8px !important; }
-        .mb-10 { margin-bottom: 5px !important; }
-        .mb-5 { margin-bottom: 3px !important; }
-        
-        .mt-20 { margin-top: 10px !important; }
-        .mt-15 { margin-top: 8px !important; }
-        .mt-10 { margin-top: 5px !important; }
-        .mt-5 { margin-top: 3px !important; }
-        
-        .pt-20 { padding-top: 10px !important; }
-        .py-10 { padding-top: 5px !important; padding-bottom: 5px !important; }
-        .py-15 { padding-top: 8px !important; padding-bottom: 8px !important; }
-        .px-20 { padding-left: 10px !important; padding-right: 10px !important; }
-        .px-30 { padding-left: 15px !important; padding-right: 15px !important; }
-        
-        .rounded-4, .rounded-full { border-radius: 8px !important; }
-        
-        .bg-green-1 { background-color: #10b981 !important; }
-        .bg-blue-1-05 { background-color: rgba(79, 70, 229, 0.05) !important; }
-        .bg-light-2 { background-color: #f5f5f5 !important; }
-        
-        .text-white { color: white !important; }
-        .text-blue-1 { color: #4f46e5 !important; }
-        .text-light-1 { color: #6b7280 !important; }
-        
-        .text-30 { font-size: 20px !important; }
-        .text-24 { font-size: 18px !important; }
-        .text-18 { font-size: 14px !important; }
-        .text-15 { font-size: 12px !important; }
-        .text-14 { font-size: 11px !important; }
-        
-        .fw-600 { font-weight: 600 !important; }
-        .fw-500 { font-weight: 500 !important; }
-        
+        .text-center { text-align: center !important; }
+        .text-end { text-align: right !important; }
         .d-flex { display: flex !important; }
         .justify-between { justify-content: space-between !important; }
         .items-center { align-items: center !important; }
-        .text-end { text-align: right !important; }
         
-        .border-top-light { border-top: 1px solid #e5e7eb !important; }
-        .border-bottom-light { border-bottom: 1px solid #e5e7eb !important; }
-        
-        .row { display: flex !important; flex-wrap: wrap !important; }
-        .col-6 { width: 50% !important; }
-        .col-12 { width: 100% !important; }
-        
-        .size-80 { width: 50px !important; height: 50px !important; }
-        .flex-center { display: flex !important; align-items: center !important; justify-content: center !important; }
-        .mx-auto { margin-left: auto !important; margin-right: auto !important; }
-        
-        i.icon-check, i.icon-info-circle, i.icon-arrow-right {
-          display: inline-block !important;
-          font-size: inherit !important;
-        }
+        .bg-light-2 { background-color: #f5f5f5 !important; }
+        .bg-blue-1-05 { background-color: #eff6ff !important; }
       }
     `;
     document.head.appendChild(styleTag);
@@ -515,579 +471,581 @@ const FlightBookingPage = () => {
 
   return (
     <>
-      <div className="header-margin"></div>
-      <DynamicHeader />
+      <div className="print-hidden">
+        <div className="header-margin"></div>
+        <DynamicHeader />
 
-      <section className="pt-40 layout-pb-md">
-        <div className="container">
-          <div className="row">
-            <div className="col-xl-8 col-lg-8">
-              <h2 className="text-30 fw-600 mb-30">Reservar Vuelo</h2>
+        <section className="pt-40 layout-pb-md">
+          <div className="container">
+            <div className="row">
+              <div className="col-xl-8 col-lg-8">
+                <h2 className="text-30 fw-600 mb-30">Reservar Vuelo</h2>
 
-              {/* Resumen del vuelo */}
-              <div className="py-30 px-30 bg-white rounded-4 shadow-3 mb-30">
-                <h5 className="text-20 fw-500 mb-20">Detalles del Vuelo</h5>
-                
-                <div className="py-20 px-20 rounded-4 bg-light-2">
-                  <div className="row y-gap-10 justify-between">
-                    <div className="col">
-                      <div className="row y-gap-10 items-center">
-                        {/* IDA */}
-                        <div className="col-12 mb-10">
-                          <div className="row items-center">
-                            <div className="col-auto">
-                              <div className="text-14 fw-500 text-blue-1">
-                                {formatearFecha(vuelo.fecha)}
-                              </div>
-                            </div>
-                            <div className="col-auto">
-                              <div className="size-30 rounded-full flex-center bg-white">
-                                <div className="text-14 fw-500 text-blue-1">IDA</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="col-sm-auto">
-                          <img
-                            className="size-40"
-                            src="/img/flightIcons/1.png"
-                            alt="airline"
-                          />
-                        </div>
-                        <div className="col">
-                          <div className="row x-gap-20 items-end">
-                            <div className="col-auto">
-                              <div className="lh-15 fw-500">{formatearHora(vuelo.horaSalida)}</div>
-                              <div className="text-15 lh-15 text-light-1">{vuelo.origenCodigo}</div>
-                            </div>
-                            <div className="col text-center">
-                              <div className="flightLine">
-                                <div />
-                                <div />
-                              </div>
-                              <div className="text-15 lh-15 text-light-1 mt-10">
-                                {vuelo.duracion || 'N/A'}
-                              </div>
-                            </div>
-                            <div className="col-auto">
-                              <div className="lh-15 fw-500">
-                                {formatearHora(vuelo.horaLlegada)}
-                              </div>
-                              <div className="text-15 lh-15 text-light-1">{vuelo.destinoCodigo}</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-md-auto">
-                          <div className="text-15 text-light-1 px-20 md:px-0">
-                            {vuelo.numeroVuelo}
-                          </div>
-                        </div>
-
-                        {/* REGRESO */}
-                        {vuelo.tipoVuelo === 'IdaYVuelta' && vuelo.fechaRegreso && (
-                          <>
-                            <div className="col-12 mt-30 mb-10">
-                              <div className="row items-center">
-                                <div className="col-auto">
-                                  <div className="text-14 fw-500 text-blue-1">
-                                    {formatearFecha(vuelo.fechaRegreso)}
-                                  </div>
+                {/* Resumen del vuelo */}
+                <div className="py-30 px-30 bg-white rounded-4 shadow-3 mb-30">
+                  <h5 className="text-20 fw-500 mb-20">Detalles del Vuelo</h5>
+                  
+                  <div className="py-20 px-20 rounded-4 bg-light-2">
+                    <div className="row y-gap-10 justify-between">
+                      <div className="col">
+                        <div className="row y-gap-10 items-center">
+                          {/* IDA */}
+                          <div className="col-12 mb-10">
+                            <div className="row items-center">
+                              <div className="col-auto">
+                                <div className="text-14 fw-500 text-blue-1">
+                                  {formatearFecha(vuelo.fecha)}
                                 </div>
-                                <div className="col-auto">
-                                  <div className="size-30 rounded-full flex-center bg-white">
-                                    <div className="text-14 fw-500 text-blue-1">REG</div>
-                                  </div>
+                              </div>
+                              <div className="col-auto">
+                                <div className="size-30 rounded-full flex-center bg-white">
+                                  <div className="text-14 fw-500 text-blue-1">IDA</div>
                                 </div>
                               </div>
                             </div>
+                          </div>
 
-                            <div className="col-sm-auto">
-                              <img
-                                className="size-40"
-                                src="/img/flightIcons/2.png"
-                                alt="airline"
-                              />
-                            </div>
-                            <div className="col">
-                              <div className="row x-gap-20 items-end">
-                                <div className="col-auto">
-                                  <div className="lh-15 fw-500">{formatearHora(vuelo.horaSalida)}</div>
-                                  <div className="text-15 lh-15 text-light-1">{vuelo.destinoCodigo}</div>
+                          <div className="col-sm-auto">
+                            <img
+                              className="size-40"
+                              src="/img/flightIcons/1.png"
+                              alt="airline"
+                            />
+                          </div>
+                          <div className="col">
+                            <div className="row x-gap-20 items-end">
+                              <div className="col-auto">
+                                <div className="lh-15 fw-500">{formatearHora(vuelo.horaSalida)}</div>
+                                <div className="text-15 lh-15 text-light-1">{vuelo.origenCodigo}</div>
+                              </div>
+                              <div className="col text-center">
+                                <div className="flightLine">
+                                  <div />
+                                  <div />
                                 </div>
-                                <div className="col text-center">
-                                  <div className="flightLine">
-                                    <div />
-                                    <div />
-                                  </div>
-                                  <div className="text-15 lh-15 text-light-1 mt-10">
-                                    {vuelo.duracion || 'N/A'}
-                                  </div>
-                                </div>
-                                <div className="col-auto">
-                                  <div className="lh-15 fw-500">
-                                    {formatearHora(vuelo.horaLlegada)}
-                                  </div>
-                                  <div className="text-15 lh-15 text-light-1">{vuelo.origenCodigo}</div>
+                                <div className="text-15 lh-15 text-light-1 mt-10">
+                                  {vuelo.duracion || 'N/A'}
                                 </div>
                               </div>
-                            </div>
-                            <div className="col-md-auto">
-                              <div className="text-15 text-light-1 px-20 md:px-0">
-                                {vuelo.numeroVuelo}
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Formulario de configuración */}
-              <div className="py-30 px-30 bg-white rounded-4 shadow-3 mb-30">
-                <h5 className="text-20 fw-500 mb-20">Configuración de Vuelo</h5>
-                
-                <div className="row y-gap-30">
-                  {/* Selección de Clase */}
-                  <div className="col-md-12">
-                    <label className="text-14 fw-500 mb-10 d-block">Clase de Vuelo</label>
-                    <div className="row y-gap-15">
-                      {vuelo.clasesDisponibles?.map((clase) => (
-                        <div key={clase.clase} className="col-12">
-                          <div 
-                            className={`py-20 px-20 rounded-4 border-light cursor-pointer ${
-                              claseSeleccionada?.clase === clase.clase ? 'bg-blue-1-05 border-blue-1' : ''
-                            }`}
-                            onClick={() => setClaseSeleccionada(clase)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <div className="d-flex justify-between items-center">
-                              <div>
-                                <div className="text-16 fw-500">{clase.clase}</div>
-                                <div className="text-14 text-light-1">{clase.asientosDisponibles} asientos disponibles</div>
-                              </div>
-                              <div className="text-18 fw-600 text-blue-1">
-                                US${clase.precio.toFixed(2)}
+                              <div className="col-auto">
+                                <div className="lh-15 fw-500">
+                                  {formatearHora(vuelo.horaLlegada)}
+                                </div>
+                                <div className="text-15 lh-15 text-light-1">{vuelo.destinoCodigo}</div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Número de Maletas */}
-                  <div className="col-12">
-                    <label className="text-14 fw-500 mb-10 d-block">Equipaje Adicional</label>
-                    <div className="d-flex items-center">
-                      <button 
-                        type="button"
-                        className="button -outline-blue-1 text-blue-1 size-40 rounded-4"
-                        onClick={() => setNumMaletas(prev => Math.max(0, Number(prev) - 1))}
-                      >
-                        <i className="icon-minus text-12" />
-                      </button>
-                      <div className="flex-center ml-20 mr-20">
-                        <div className="text-15 fw-500">{numMaletas} Maleta{numMaletas !== 1 ? 's' : ''}</div>
-                        <div className="text-14 text-light-1 ml-10">(US$25.00 c/u)</div>
-                      </div>
-                      <button 
-                        type="button"
-                        className="button -outline-blue-1 text-blue-1 size-40 rounded-4"
-                        onClick={() => setNumMaletas(prev => Number(prev) + 1)}
-                      >
-                        <i className="icon-plus text-12" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-top-light mt-30 pt-30">
-                  <label className="text-14 fw-500 mb-15 d-block">Número de Pasajeros</label>
-                  <div className="row y-gap-20">
-                    {/* Adultos */}
-                    <div className="col-md-6">
-                      <div className="d-flex justify-between items-center">
-                        <div>
-                          <div className="text-15 fw-500">Adultos</div>
-                          <div className="text-14 text-light-1">12 años o más</div>
-                        </div>
-                        <div className="d-flex items-center">
-                          <button 
-                            type="button"
-                            className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
-                            onClick={() => setAdultos(Math.max(1, adultos - 1))}
-                          >
-                            <i className="icon-minus text-10" />
-                          </button>
-                          <div className="flex-center size-35 ml-10 mr-10">
-                            <div className="text-15 fw-500">{adultos}</div>
-                          </div>
-                          <button 
-                            type="button"
-                            className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
-                            onClick={() => setAdultos(adultos + 1)}
-                          >
-                            <i className="icon-plus text-10" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Niños */}
-                    <div className="col-md-6">
-                      <div className="d-flex justify-between items-center">
-                        <div>
-                          <div className="text-15 fw-500">Niños</div>
-                          <div className="text-14 text-light-1">0-11 años</div>
-                        </div>
-                        <div className="d-flex items-center">
-                          <button 
-                            type="button"
-                            className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
-                            onClick={() => setNinos(Math.max(0, ninos - 1))}
-                          >
-                            <i className="icon-minus text-10" />
-                          </button>
-                          <div className="flex-center size-35 ml-10 mr-10">
-                            <div className="text-15 fw-500">{ninos}</div>
-                          </div>
-                          <button 
-                            type="button"
-                            className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
-                            onClick={() => setNinos(ninos + 1)}
-                          >
-                            <i className="icon-plus text-10" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Formulario de pasajeros */}
-              <div className="py-30 px-30 bg-white rounded-4 shadow-3">
-                <h5 className="text-20 fw-500 mb-20">Información de Pasajeros</h5>
-                
-                {pasajeros.map((pasajero, index) => (
-                  <div key={index} className="border-light rounded-4 px-30 py-20 mb-20">
-                    <div className="d-flex items-center mb-20">
-                      <div className="size-40 rounded-full bg-blue-1-05 flex-center mr-15">
-                        <div className="text-16 fw-500 text-blue-1">{index + 1}</div>
-                      </div>
-                      <h6 className="text-16 fw-500">
-                        Pasajero {index + 1} - {pasajero.tipo}
-                      </h6>
-                    </div>
-                    
-                    <div className="row y-gap-20">
-                      <div className="col-md-6">
-                        <div className="form-input">
-                          <input 
-                            type="text"
-                            value={pasajero.nombre}
-                            onChange={(e) => handlePasajeroChange(index, 'nombre', e.target.value)}
-                            required
-                            readOnly={isPrefilledField(index, 'nombre')}
-                            disabled={isPrefilledField(index, 'nombre')}
-                          />
-                          <label className="lh-1 text-14 text-light-1">Nombre</label>
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="form-input">
-                          <input 
-                            type="text"
-                            value={pasajero.apellido}
-                            onChange={(e) => handlePasajeroChange(index, 'apellido', e.target.value)}
-                            required
-                            readOnly={isPrefilledField(index, 'apellido')}
-                            disabled={isPrefilledField(index, 'apellido')}
-                          />
-                          <label className="lh-1 text-14 text-light-1">Apellido</label>
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="form-input">
-                          <input 
-                            type="text"
-                            value={pasajero.numeroDocumento}
-                            onChange={(e) => handlePasajeroChange(index, 'numeroDocumento', e.target.value)}
-                            required
-                            readOnly={isPrefilledField(index, 'numeroDocumento')}
-                            disabled={isPrefilledField(index, 'numeroDocumento')}
-                          />
-                          <label className="lh-1 text-14 text-light-1">Número de Documento</label>
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="form-input">
-                          <input 
-                            type="date"
-                            value={pasajero.fechaNacimiento}
-                            onChange={(e) => handlePasajeroChange(index, 'fechaNacimiento', e.target.value)}
-                            required
-                            readOnly={isPrefilledField(index, 'fechaNacimiento')}
-                            disabled={isPrefilledField(index, 'fechaNacimiento')}
-                            max={hoyInput}
-                          />
-                          <label className="lh-1 text-14 text-light-1">Fecha de Nacimiento</label>
-                        </div>
-                      </div>
-
-                      <div className="col-md-12">
-                        <label className="text-14 fw-500 mb-10 d-block">Número de Asiento</label>
-                        <div className="text-13 text-light-1 mb-10">
-                          <i className="icon-info-circle mr-5"></i>
-                          Solo se muestran asientos disponibles. Los asientos reservados por otros clientes no aparecen.
-                        </div>
-                        {cargandoAsientos ? (
-                          <div className="d-flex items-center justify-center py-20">
-                            <div className="text-15 text-light-1">Cargando asientos disponibles...</div>
-                          </div>
-                        ) : asientosDisponibles.length > 0 ? (
-                          <select
-                            className="form-select"
-                            value={pasajero.numeroAsiento}
-                            onChange={(e) => handlePasajeroChange(index, 'numeroAsiento', e.target.value)}
-                            required
-                            style={{
-                              width: '100%',
-                              height: '50px',
-                              padding: '0 20px',
-                              border: '1px solid #ddd',
-                              borderRadius: '4px',
-                              fontSize: '15px'
-                            }}
-                          >
-                            <option value="">Seleccione un asiento</option>
-                            {asientosDisponibles.map((asiento) => {
-                              const numeroAsiento = asiento.numero || asiento.numeroAsiento || asiento;
-                              const yaSeleccionado = pasajeros.some((p, i) => i !== index && p.numeroAsiento === numeroAsiento);
-                              // Determinar si es asiento de ventana
-                              let esVentana = false;
-                              if (asiento && typeof asiento === 'object') {
-                                if (typeof asiento.esVentana === 'boolean') esVentana = asiento.esVentana;
-                                else if (asiento.columna) {
-                                  const col = String(asiento.columna).toUpperCase();
-                                  const ventanaCols = ['A','F','K','L'];
-                                  esVentana = ventanaCols.includes(col);
-                                }
-                              } else {
-                                const letra = String(numeroAsiento).slice(-1).toUpperCase();
-                                const ventanaCols = ['A','F','K','L'];
-                                esVentana = ventanaCols.includes(letra);
-                              }
-                              return (
-                                <option 
-                                  key={numeroAsiento} 
-                                  value={numeroAsiento}
-                                  disabled={yaSeleccionado}
-                                >
-                                  {numeroAsiento} - Fila {asiento.fila || ''} {asiento.columna || ''}
-                                  {esVentana ? ' (Ventana)' : ''}
-                                  {yaSeleccionado && ' (Ya seleccionado)'}
-                                </option>
-                              );
-                            })}
-                          </select>
-                        ) : (
-                          <div className="text-15 text-red-1">
-                            No hay asientos disponibles para esta clase
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Formulario de Pago */}
-              <div className="py-30 px-30 bg-white rounded-4 shadow-3 mt-30">
-                <h5 className="text-20 fw-500 mb-20">Información de Pago</h5>
-                
-                <div className="row y-gap-20">
-                  <div className="col-12">
-                    <div className="form-input">
-                      <input 
-                        type="text"
-                        value={datosPago.numeroTarjeta}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
-                          const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-                          setDatosPago({...datosPago, numeroTarjeta: formatted});
-                        }}
-                        maxLength="19"
-                        placeholder="1234 5678 9012 3456"
-                        required
-                      />
-                      <label className="lh-1 text-14 text-light-1">Número de Tarjeta</label>
-                    </div>
-                  </div>
-
-                  <div className="col-12">
-                    <div className="form-input">
-                      <input 
-                        type="text"
-                        value={datosPago.nombreTitular}
-                        onChange={(e) => setDatosPago({...datosPago, nombreTitular: e.target.value.toUpperCase()})}
-                        placeholder="NOMBRE APELLIDO"
-                        required
-                      />
-                      <label className="lh-1 text-14 text-light-1">Nombre del Titular</label>
-                    </div>
-                  </div>
-
-                  <div className="col-md-6">
-                    <div className="form-input">
-                      <input 
-                        type="text"
-                        value={datosPago.fechaExpiracion}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          const formatted = value.length >= 2 ? value.slice(0, 2) + '/' + value.slice(2, 4) : value;
-                          setDatosPago({...datosPago, fechaExpiracion: formatted});
-                        }}
-                        maxLength="5"
-                        placeholder="MM/AA"
-                        required
-                      />
-                      <label className="lh-1 text-14 text-light-1">Fecha de Expiración</label>
-                    </div>
-                  </div>
-
-                  <div className="col-md-6">
-                    <div className="form-input">
-                      <input 
-                        type="text"
-                        value={datosPago.cvv}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          setDatosPago({...datosPago, cvv: value});
-                        }}
-                        maxLength="3"
-                        placeholder="123"
-                        required
-                      />
-                      <label className="lh-1 text-14 text-light-1">CVV</label>
-                    </div>
-                  </div>
-
-                  <div className="col-12">
-                    <div className="d-flex items-center gap-2">
-                      <i className="icon-shield text-20 text-green-2"></i>
-                      <div className="text-14 text-light-1">
-                        Sus datos están protegidos con encriptación SSL
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar con resumen de precio */}
-            <div className="col-xl-4 col-lg-4">
-              <div className="py-30 px-30 bg-white rounded-4 shadow-3" style={{ position: 'sticky', top: '100px' }}>
-                <h5 className="text-20 fw-500 mb-20">Resumen de Precio</h5>
-                
-                <div className="row y-gap-15">
-                  <div className="col-12">
-                    <div className="bg-blue-1-05 rounded-4 px-20 py-15">
-                      <div className="text-14 text-light-1 mb-5">Vuelo</div>
-                      <div className="text-16 fw-500">{vuelo.numeroVuelo}</div>
-                    </div>
-                  </div>
-
-                  {claseSeleccionada && (
-                    <>
-                      <div className="col-12 mt-20">
-                        <div className="d-flex items-center justify-between py-10">
-                          <div className="text-15">Precio Base × {adultos + ninos}</div>
-                          <div className="text-15 fw-500">
-                            US${(vuelo.precioBase * (adultos + ninos)).toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {calcularRecargoPorClase() > 0 && (
-                        <div className="col-12">
-                          <div className="d-flex items-center justify-between py-10">
-                            <div className="text-15">Recargo {claseSeleccionada.clase} × {adultos + ninos}</div>
-                            <div className="text-15 fw-500 text-blue-1">
-                              +US${(calcularRecargoPorClase() * (adultos + ninos)).toFixed(2)}
+                          <div className="col-md-auto">
+                            <div className="text-15 text-light-1 px-20 md:px-0">
+                              {vuelo.numeroVuelo}
                             </div>
                           </div>
-                        </div>
-                      )}
 
-                      {numMaletas > 0 && (
-                        <div className="col-12">
-                          <div className="d-flex items-center justify-between py-10">
-                            <div className="text-15">Maletas × {numMaletas}</div>
-                            <div className="text-15 fw-500">US${(numMaletas * 25).toFixed(2)}</div>
-                          </div>
-                        </div>
-                      )}
+                          {/* REGRESO */}
+                          {vuelo.tipoVuelo === 'IdaYVuelta' && vuelo.fechaRegreso && (
+                            <>
+                              <div className="col-12 mt-30 mb-10">
+                                <div className="row items-center">
+                                  <div className="col-auto">
+                                    <div className="text-14 fw-500 text-blue-1">
+                                      {formatearFecha(vuelo.fechaRegreso)}
+                                    </div>
+                                  </div>
+                                  <div className="col-auto">
+                                    <div className="size-30 rounded-full flex-center bg-white">
+                                      <div className="text-14 fw-500 text-blue-1">REG</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
 
-                      {pasajeros.some(p => p.esVentana) && (
-                        <div className="col-12">
-                          <div className="d-flex items-center justify-between py-10">
-                            <div className="text-15">Recargo Ventana × {pasajeros.filter(p => p.esVentana).length}</div>
-                            <div className="text-15 fw-500">US${(pasajeros.filter(p => p.esVentana).length * 10).toFixed(2)}</div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="col-12">
-                        <div className="border-top-light my-10"></div>
-                      </div>
-
-                      <div className="col-12">
-                        <div className="d-flex items-center justify-between">
-                          <div className="text-18 fw-600">Total</div>
-                          <div className="text-24 fw-600 text-blue-1">
-                            US${calcularPrecioTotal().toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="col-12 mt-20">
-                        <button 
-                          className="button -dark-1 py-15 px-35 h-50 col-12 rounded-4 bg-blue-1 text-white"
-                          onClick={handleConfirmarReserva}
-                          disabled={procesando || pasajeros.length === 0}
-                        >
-                          {procesando ? 'Procesando...' : 'Confirmar Reserva'}
-                        </button>
-                      </div>
-
-                      <div className="col-12 mt-15">
-                        <div className="bg-light-2 rounded-4 px-15 py-15">
-                          <div className="text-14 fw-500 mb-10">Desglose:</div>
-                          <div className="text-14 text-light-1">• {adultos} Adulto{adultos > 1 ? 's' : ''}</div>
-                          {ninos > 0 && <div className="text-14 text-light-1">• {ninos} Niño{ninos > 1 ? 's' : ''}</div>}
-                          {numMaletas > 0 && <div className="text-14 text-light-1">• {numMaletas} Maleta{numMaletas > 1 ? 's' : ''}</div>}
-                          {pasajeros.some(p => p.esVentana) && (
-                            <div className="text-14 text-light-1">• {pasajeros.filter(p => p.esVentana).length} Asiento(s) Ventana</div>
+                              <div className="col-sm-auto">
+                                <img
+                                  className="size-40"
+                                  src="/img/flightIcons/2.png"
+                                  alt="airline"
+                                />
+                              </div>
+                              <div className="col">
+                                <div className="row x-gap-20 items-end">
+                                  <div className="col-auto">
+                                    <div className="lh-15 fw-500">{formatearHora(vuelo.horaSalida)}</div>
+                                    <div className="text-15 lh-15 text-light-1">{vuelo.destinoCodigo}</div>
+                                  </div>
+                                  <div className="col text-center">
+                                    <div className="flightLine">
+                                      <div />
+                                      <div />
+                                    </div>
+                                    <div className="text-15 lh-15 text-light-1 mt-10">
+                                      {vuelo.duracion || 'N/A'}
+                                    </div>
+                                  </div>
+                                  <div className="col-auto">
+                                    <div className="lh-15 fw-500">
+                                      {formatearHora(vuelo.horaLlegada)}
+                                    </div>
+                                    <div className="text-15 lh-15 text-light-1">{vuelo.origenCodigo}</div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="col-md-auto">
+                                <div className="text-15 text-light-1 px-20 md:px-0">
+                                  {vuelo.numeroVuelo}
+                                </div>
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
-                    </>
-                  )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Formulario de configuración */}
+                <div className="py-30 px-30 bg-white rounded-4 shadow-3 mb-30">
+                  <h5 className="text-20 fw-500 mb-20">Configuración de Vuelo</h5>
+                  
+                  <div className="row y-gap-30">
+                    {/* Selección de Clase */}
+                    <div className="col-md-12">
+                      <label className="text-14 fw-500 mb-10 d-block">Clase de Vuelo</label>
+                      <div className="row y-gap-15">
+                        {vuelo.clasesDisponibles?.map((clase) => (
+                          <div key={clase.clase} className="col-12">
+                            <div 
+                              className={`py-20 px-20 rounded-4 border-light cursor-pointer ${
+                                claseSeleccionada?.clase === clase.clase ? 'bg-blue-1-05 border-blue-1' : ''
+                              }`}
+                              onClick={() => setClaseSeleccionada(clase)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <div className="d-flex justify-between items-center">
+                                <div>
+                                  <div className="text-16 fw-500">{clase.clase}</div>
+                                  <div className="text-14 text-light-1">{clase.asientosDisponibles} asientos disponibles</div>
+                                </div>
+                                <div className="text-18 fw-600 text-blue-1">
+                                  US${clase.precio.toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Número de Maletas */}
+                    <div className="col-12">
+                      <label className="text-14 fw-500 mb-10 d-block">Equipaje Adicional</label>
+                      <div className="d-flex items-center">
+                        <button 
+                          type="button"
+                          className="button -outline-blue-1 text-blue-1 size-40 rounded-4"
+                          onClick={() => setNumMaletas(prev => Math.max(0, Number(prev) - 1))}
+                        >
+                          <i className="icon-minus text-12" />
+                        </button>
+                        <div className="flex-center ml-20 mr-20">
+                          <div className="text-15 fw-500">{numMaletas} Maleta{numMaletas !== 1 ? 's' : ''}</div>
+                          <div className="text-14 text-light-1 ml-10">(US$25.00 c/u)</div>
+                        </div>
+                        <button 
+                          type="button"
+                          className="button -outline-blue-1 text-blue-1 size-40 rounded-4"
+                          onClick={() => setNumMaletas(prev => Number(prev) + 1)}
+                        >
+                          <i className="icon-plus text-12" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-top-light mt-30 pt-30">
+                    <label className="text-14 fw-500 mb-15 d-block">Número de Pasajeros</label>
+                    <div className="row y-gap-20">
+                      {/* Adultos */}
+                      <div className="col-md-6">
+                        <div className="d-flex justify-between items-center">
+                          <div>
+                            <div className="text-15 fw-500">Adultos</div>
+                            <div className="text-14 text-light-1">12 años o más</div>
+                          </div>
+                          <div className="d-flex items-center">
+                            <button 
+                              type="button"
+                              className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
+                              onClick={() => setAdultos(Math.max(1, adultos - 1))}
+                            >
+                              <i className="icon-minus text-10" />
+                            </button>
+                            <div className="flex-center size-35 ml-10 mr-10">
+                              <div className="text-15 fw-500">{adultos}</div>
+                            </div>
+                            <button 
+                              type="button"
+                              className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
+                              onClick={() => setAdultos(adultos + 1)}
+                            >
+                              <i className="icon-plus text-10" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Niños */}
+                      <div className="col-md-6">
+                        <div className="d-flex justify-between items-center">
+                          <div>
+                            <div className="text-15 fw-500">Niños</div>
+                            <div className="text-14 text-light-1">0-11 años</div>
+                          </div>
+                          <div className="d-flex items-center">
+                            <button 
+                              type="button"
+                              className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
+                              onClick={() => setNinos(Math.max(0, ninos - 1))}
+                            >
+                              <i className="icon-minus text-10" />
+                            </button>
+                            <div className="flex-center size-35 ml-10 mr-10">
+                              <div className="text-15 fw-500">{ninos}</div>
+                            </div>
+                            <button 
+                              type="button"
+                              className="button -outline-blue-1 text-blue-1 size-35 rounded-4"
+                              onClick={() => setNinos(ninos + 1)}
+                            >
+                              <i className="icon-plus text-10" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Formulario de pasajeros */}
+                <div className="py-30 px-30 bg-white rounded-4 shadow-3">
+                  <h5 className="text-20 fw-500 mb-20">Información de Pasajeros</h5>
+                  
+                  {pasajeros.map((pasajero, index) => (
+                    <div key={index} className="border-light rounded-4 px-30 py-20 mb-20">
+                      <div className="d-flex items-center mb-20">
+                        <div className="size-40 rounded-full bg-blue-1-05 flex-center mr-15">
+                          <div className="text-16 fw-500 text-blue-1">{index + 1}</div>
+                        </div>
+                        <h6 className="text-16 fw-500">
+                          Pasajero {index + 1} - {pasajero.tipo}
+                        </h6>
+                      </div>
+                      
+                      <div className="row y-gap-20">
+                        <div className="col-md-6">
+                          <div className="form-input">
+                            <input 
+                              type="text"
+                              value={pasajero.nombre}
+                              onChange={(e) => handlePasajeroChange(index, 'nombre', e.target.value)}
+                              required
+                              readOnly={isPrefilledField(index, 'nombre')}
+                              disabled={isPrefilledField(index, 'nombre')}
+                            />
+                            <label className="lh-1 text-14 text-light-1">Nombre</label>
+                          </div>
+                        </div>
+
+                        <div className="col-md-6">
+                          <div className="form-input">
+                            <input 
+                              type="text"
+                              value={pasajero.apellido}
+                              onChange={(e) => handlePasajeroChange(index, 'apellido', e.target.value)}
+                              required
+                              readOnly={isPrefilledField(index, 'apellido')}
+                              disabled={isPrefilledField(index, 'apellido')}
+                            />
+                            <label className="lh-1 text-14 text-light-1">Apellido</label>
+                          </div>
+                        </div>
+
+                        <div className="col-md-6">
+                          <div className="form-input">
+                            <input 
+                              type="text"
+                              value={pasajero.numeroDocumento}
+                              onChange={(e) => handlePasajeroChange(index, 'numeroDocumento', e.target.value)}
+                              required
+                              readOnly={isPrefilledField(index, 'numeroDocumento')}
+                              disabled={isPrefilledField(index, 'numeroDocumento')}
+                            />
+                            <label className="lh-1 text-14 text-light-1">Número de Documento</label>
+                          </div>
+                        </div>
+
+                        <div className="col-md-6">
+                          <div className="form-input">
+                            <input 
+                              type="date"
+                              value={pasajero.fechaNacimiento}
+                              onChange={(e) => handlePasajeroChange(index, 'fechaNacimiento', e.target.value)}
+                              required
+                              readOnly={isPrefilledField(index, 'fechaNacimiento')}
+                              disabled={isPrefilledField(index, 'fechaNacimiento')}
+                              max={hoyInput}
+                            />
+                            <label className="lh-1 text-14 text-light-1">Fecha de Nacimiento</label>
+                          </div>
+                        </div>
+
+                        <div className="col-md-12">
+                          <label className="text-14 fw-500 mb-10 d-block">Número de Asiento</label>
+                          <div className="text-13 text-light-1 mb-10">
+                            <i className="icon-info-circle mr-5"></i>
+                            Solo se muestran asientos disponibles. Los asientos reservados por otros clientes no aparecen.
+                          </div>
+                          {cargandoAsientos ? (
+                            <div className="d-flex items-center justify-center py-20">
+                              <div className="text-15 text-light-1">Cargando asientos disponibles...</div>
+                            </div>
+                          ) : asientosDisponibles.length > 0 ? (
+                            <select
+                              className="form-select"
+                              value={pasajero.numeroAsiento}
+                              onChange={(e) => handlePasajeroChange(index, 'numeroAsiento', e.target.value)}
+                              required
+                              style={{
+                                width: '100%',
+                                height: '50px',
+                                padding: '0 20px',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                fontSize: '15px'
+                              }}
+                            >
+                              <option value="">Seleccione un asiento</option>
+                              {asientosDisponibles.map((asiento) => {
+                                const numeroAsiento = asiento.numero || asiento.numeroAsiento || asiento;
+                                const yaSeleccionado = pasajeros.some((p, i) => i !== index && p.numeroAsiento === numeroAsiento);
+                                // Determinar si es asiento de ventana
+                                let esVentana = false;
+                                if (asiento && typeof asiento === 'object') {
+                                  if (typeof asiento.esVentana === 'boolean') esVentana = asiento.esVentana;
+                                  else if (asiento.columna) {
+                                    const col = String(asiento.columna).toUpperCase();
+                                    const ventanaCols = ['A','F','K','L'];
+                                    esVentana = ventanaCols.includes(col);
+                                  }
+                                } else {
+                                  const letra = String(numeroAsiento).slice(-1).toUpperCase();
+                                  const ventanaCols = ['A','F','K','L'];
+                                  esVentana = ventanaCols.includes(letra);
+                                }
+                                return (
+                                  <option 
+                                    key={numeroAsiento} 
+                                    value={numeroAsiento}
+                                    disabled={yaSeleccionado}
+                                  >
+                                    {numeroAsiento} - Fila {asiento.fila || ''} {asiento.columna || ''}
+                                    {esVentana ? ' (Ventana)' : ''}
+                                    {yaSeleccionado && ' (Ya seleccionado)'}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          ) : (
+                            <div className="text-15 text-red-1">
+                              No hay asientos disponibles para esta clase
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Formulario de Pago */}
+                <div className="py-30 px-30 bg-white rounded-4 shadow-3 mt-30">
+                  <h5 className="text-20 fw-500 mb-20">Información de Pago</h5>
+                  
+                  <div className="row y-gap-20">
+                    <div className="col-12">
+                      <div className="form-input">
+                        <input 
+                          type="text"
+                          value={datosPago.numeroTarjeta}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+                            const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                            setDatosPago({...datosPago, numeroTarjeta: formatted});
+                          }}
+                          maxLength="19"
+                          placeholder="1234 5678 9012 3456"
+                          required
+                        />
+                        <label className="lh-1 text-14 text-light-1">Número de Tarjeta</label>
+                      </div>
+                    </div>
+
+                    <div className="col-12">
+                      <div className="form-input">
+                        <input 
+                          type="text"
+                          value={datosPago.nombreTitular}
+                          onChange={(e) => setDatosPago({...datosPago, nombreTitular: e.target.value.toUpperCase()})}
+                          placeholder="NOMBRE APELLIDO"
+                          required
+                        />
+                        <label className="lh-1 text-14 text-light-1">Nombre del Titular</label>
+                      </div>
+                    </div>
+
+                    <div className="col-md-6">
+                      <div className="form-input">
+                        <input 
+                          type="text"
+                          value={datosPago.fechaExpiracion}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            const formatted = value.length >= 2 ? value.slice(0, 2) + '/' + value.slice(2, 4) : value;
+                            setDatosPago({...datosPago, fechaExpiracion: formatted});
+                          }}
+                          maxLength="5"
+                          placeholder="MM/AA"
+                          required
+                        />
+                        <label className="lh-1 text-14 text-light-1">Fecha de Expiración</label>
+                      </div>
+                    </div>
+
+                    <div className="col-md-6">
+                      <div className="form-input">
+                        <input 
+                          type="text"
+                          value={datosPago.cvv}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setDatosPago({...datosPago, cvv: value});
+                          }}
+                          maxLength="3"
+                          placeholder="123"
+                          required
+                        />
+                        <label className="lh-1 text-14 text-light-1">CVV</label>
+                      </div>
+                    </div>
+
+                    <div className="col-12">
+                      <div className="d-flex items-center gap-2">
+                        <i className="icon-shield text-20 text-green-2"></i>
+                        <div className="text-14 text-light-1">
+                          Sus datos están protegidos con encriptación SSL
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar con resumen de precio */}
+              <div className="col-xl-4 col-lg-4">
+                <div className="py-30 px-30 bg-white rounded-4 shadow-3" style={{ position: 'sticky', top: '100px' }}>
+                  <h5 className="text-20 fw-500 mb-20">Resumen de Precio</h5>
+                  
+                  <div className="row y-gap-15">
+                    <div className="col-12">
+                      <div className="bg-blue-1-05 rounded-4 px-20 py-15">
+                        <div className="text-14 text-light-1 mb-5">Vuelo</div>
+                        <div className="text-16 fw-500">{vuelo.numeroVuelo}</div>
+                      </div>
+                    </div>
+
+                    {claseSeleccionada && (
+                      <>
+                        <div className="col-12 mt-20">
+                          <div className="d-flex items-center justify-between py-10">
+                            <div className="text-15">Precio Base × {adultos + ninos}</div>
+                            <div className="text-15 fw-500">
+                              US${(vuelo.precioBase * (adultos + ninos)).toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {calcularRecargoPorClase() > 0 && (
+                          <div className="col-12">
+                            <div className="d-flex items-center justify-between py-10">
+                              <div className="text-15">Recargo {claseSeleccionada.clase} × {adultos + ninos}</div>
+                              <div className="text-15 fw-500 text-blue-1">
+                                +US${(calcularRecargoPorClase() * (adultos + ninos)).toFixed(2)}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {numMaletas > 0 && (
+                          <div className="col-12">
+                            <div className="d-flex items-center justify-between py-10">
+                              <div className="text-15">Maletas × {numMaletas}</div>
+                              <div className="text-15 fw-500">US${(numMaletas * 25).toFixed(2)}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {pasajeros.some(p => p.esVentana) && (
+                          <div className="col-12">
+                            <div className="d-flex items-center justify-between py-10">
+                              <div className="text-15">Recargo Ventana × {pasajeros.filter(p => p.esVentana).length}</div>
+                              <div className="text-15 fw-500">US${(pasajeros.filter(p => p.esVentana).length * 10).toFixed(2)}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="col-12">
+                          <div className="border-top-light my-10"></div>
+                        </div>
+
+                        <div className="col-12">
+                          <div className="d-flex items-center justify-between">
+                            <div className="text-18 fw-600">Total</div>
+                            <div className="text-24 fw-600 text-blue-1">
+                              US${calcularPrecioTotal().toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="col-12 mt-20">
+                          <button 
+                            className="button -dark-1 py-15 px-35 h-50 col-12 rounded-4 bg-blue-1 text-white"
+                            onClick={handleConfirmarReserva}
+                            disabled={procesando || pasajeros.length === 0}
+                          >
+                            {procesando ? 'Procesando...' : 'Confirmar Reserva'}
+                          </button>
+                        </div>
+
+                        <div className="col-12 mt-15">
+                          <div className="bg-light-2 rounded-4 px-15 py-15">
+                            <div className="text-14 fw-500 mb-10">Desglose:</div>
+                            <div className="text-14 text-light-1">• {adultos} Adulto{adultos > 1 ? 's' : ''}</div>
+                            {ninos > 0 && <div className="text-14 text-light-1">• {ninos} Niño{ninos > 1 ? 's' : ''}</div>}
+                            {numMaletas > 0 && <div className="text-14 text-light-1">• {numMaletas} Maleta{numMaletas > 1 ? 's' : ''}</div>}
+                            {pasajeros.some(p => p.esVentana) && (
+                              <div className="text-14 text-light-1">• {pasajeros.filter(p => p.esVentana).length} Asiento(s) Ventana</div>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* Modal de Comprobante */}
+      {/* Modal de Comprobante - Movido fuera del contenedor oculto */}
       {mostrarModal && datosReserva && (
         <div 
           className="modal-backdrop" 
@@ -1265,7 +1223,10 @@ const FlightBookingPage = () => {
           </div>
         </div>
       )}
-      <DefaultFooter />
+      
+      <div className="print-hidden">
+        <DefaultFooter />
+      </div>
     </>
   );
 };
