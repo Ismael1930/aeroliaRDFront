@@ -102,16 +102,28 @@ const GestionFacturas = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {facturasPaginadas.map((factura) => (
+                    {facturasPaginadas.map((factura) => {
+                      const estadoPago = factura.EstadoPago || factura.estadoPago || '';
+                      return (
                       <tr key={factura.Codigo || factura.codigo || factura.id}>
                         <td className="fw-500">{factura.Codigo || factura.codigo}</td>
                         <td className="fw-500">{factura.CodReserva || factura.codReserva}</td>
                         <td>{factura.Monto ?? factura.monto}</td>
                         <td>{factura.MetodoPago || factura.metodoPago}</td>
                         <td>{factura.FechaEmision ? new Date(factura.FechaEmision).toLocaleString() : (factura.fechaEmision ? new Date(factura.fechaEmision).toLocaleString() : '')}</td>
-                        <td>{factura.EstadoPago || factura.estadoPago}</td>
+                        <td>
+                          <span className={`py-10 px-15 rounded-100 text-12 fw-500 ${
+                            estadoPago === 'Pagado' || estadoPago === 'Completado' ? 'bg-green-2 text-white' :
+                            estadoPago === 'Cancelado' || estadoPago === 'Rechazado' ? 'bg-red-2 text-white' :
+                            estadoPago === 'Pendiente' ? 'bg-yellow-2 text-dark-1' :
+                            'bg-blue-1-05 text-blue-1'
+                          }`}>
+                            {estadoPago}
+                          </span>
+                        </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
 

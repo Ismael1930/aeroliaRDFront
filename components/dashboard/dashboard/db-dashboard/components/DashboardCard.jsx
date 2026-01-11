@@ -16,12 +16,37 @@ const DashboardCard = () => {
     const load = async () => {
       setLoading(true);
       try {
-        // Facturas
+        // Reservas (cargar primero para usarlas en facturas)
+        let reservasResp = await reservaService.getAll();
+        let reservas = Array.isArray(reservasResp) ? reservasResp : (reservasResp.items || reservasResp.data || []);
+        if (!Array.isArray(reservas)) reservas = [];
+        
+        // Contar solo reservas confirmadas (excluir canceladas)
+        const reservasConfirmadas = reservas.filter(r => {
+          const estado = (r.Estado || r.estado || '').toLowerCase();
+          return estado !== 'cancelada';
+        });
+        setCountReservas(reservasConfirmadas.length);
+
+        // Facturas - Solo sumar facturas de reservas NO canceladas
         let facturasResp = await facturaService.getAll();
         // facturaService.getAll may return array or wrapper
         let facturas = Array.isArray(facturasResp) ? facturasResp : (facturasResp.data || facturasResp.items || facturasResp || []);
         if (!Array.isArray(facturas)) facturas = [];
+        
+        // Obtener códigos de reservas canceladas
+        const reservasCanceladas = reservas.filter(r => {
+          const estado = (r.Estado || r.estado || '').toLowerCase();
+          return estado === 'cancelada';
+        }).map(r => r.Codigo || r.codigo);
+        
+        // Sumar solo facturas que NO correspondan a reservas canceladas
         const total = facturas.reduce((acc, f) => {
+          const codReserva = f.CodReserva || f.codReserva || '';
+          // Excluir facturas de reservas canceladas
+          if (reservasCanceladas.includes(codReserva)) {
+            return acc;
+          }
           const monto = Number(f.Monto ?? f.monto ?? f.MontoFactura ?? 0) || 0;
           return acc + monto;
         }, 0);
@@ -32,12 +57,6 @@ const DashboardCard = () => {
         let vuelos = Array.isArray(vuelosResp) ? vuelosResp : (vuelosResp.data || vuelosResp.items || vuelosResp || []);
         if (!Array.isArray(vuelos)) vuelos = [];
         setCountVuelos(vuelos.length);
-
-        // Reservas
-        let reservasResp = await reservaService.getAll();
-        let reservas = Array.isArray(reservasResp) ? reservasResp : (reservasResp.items || reservasResp.data || []);
-        if (!Array.isArray(reservas)) reservas = [];
-        setCountReservas(reservas.length);
 
         // Aeronaves disponibles (manejar varios envoltorios: array, number, {count}, {items}, {data: [...]}, {data: {items,count}} )
         try {

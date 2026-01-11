@@ -12,6 +12,121 @@ import { obtenerClientePorUserId } from "@/api/clienteService";
 import { obtenerPasajeroPorUserId } from "@/api/pasajeroService";
 
 const FlightBookingPage = () => {
+  // Agregar estilos para impresión
+  useEffect(() => {
+    const styleTag = document.createElement('style');
+    styleTag.innerHTML = `
+      @media print {
+        /* Resetear estilos de body y html */
+        @page {
+          margin: 0.5cm;
+        }
+        
+        * {
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        
+        html, body {
+          height: auto !important;
+          width: 100% !important;
+        }
+        
+        /* Ocultar TODO excepto el modal */
+        body > *:not(.modal-backdrop) {
+          display: none !important;
+        }
+        
+        /* El backdrop debe comportarse como contenedor transparente */
+        .modal-backdrop {
+          all: unset !important;
+          display: block !important;
+          position: static !important;
+          width: 100% !important;
+        }
+        
+        /* Estilos específicos para el contenido del modal en impresión */
+        .comprobante-modal-content {
+          all: unset !important;
+          display: block !important;
+          width: 100% !important;
+          font-family: inherit !important;
+        }
+        
+        /* Ocultar botones en impresión */
+        .no-print {
+          display: none !important;
+        }
+        
+        /* Restaurar estilos necesarios */
+        .text-center {
+          text-align: center !important;
+        }
+        
+        .mb-30 { margin-bottom: 15px !important; }
+        .mb-20 { margin-bottom: 10px !important; }
+        .mb-15 { margin-bottom: 8px !important; }
+        .mb-10 { margin-bottom: 5px !important; }
+        .mb-5 { margin-bottom: 3px !important; }
+        
+        .mt-20 { margin-top: 10px !important; }
+        .mt-15 { margin-top: 8px !important; }
+        .mt-10 { margin-top: 5px !important; }
+        .mt-5 { margin-top: 3px !important; }
+        
+        .pt-20 { padding-top: 10px !important; }
+        .py-10 { padding-top: 5px !important; padding-bottom: 5px !important; }
+        .py-15 { padding-top: 8px !important; padding-bottom: 8px !important; }
+        .px-20 { padding-left: 10px !important; padding-right: 10px !important; }
+        .px-30 { padding-left: 15px !important; padding-right: 15px !important; }
+        
+        .rounded-4, .rounded-full { border-radius: 8px !important; }
+        
+        .bg-green-1 { background-color: #10b981 !important; }
+        .bg-blue-1-05 { background-color: rgba(79, 70, 229, 0.05) !important; }
+        .bg-light-2 { background-color: #f5f5f5 !important; }
+        
+        .text-white { color: white !important; }
+        .text-blue-1 { color: #4f46e5 !important; }
+        .text-light-1 { color: #6b7280 !important; }
+        
+        .text-30 { font-size: 20px !important; }
+        .text-24 { font-size: 18px !important; }
+        .text-18 { font-size: 14px !important; }
+        .text-15 { font-size: 12px !important; }
+        .text-14 { font-size: 11px !important; }
+        
+        .fw-600 { font-weight: 600 !important; }
+        .fw-500 { font-weight: 500 !important; }
+        
+        .d-flex { display: flex !important; }
+        .justify-between { justify-content: space-between !important; }
+        .items-center { align-items: center !important; }
+        .text-end { text-align: right !important; }
+        
+        .border-top-light { border-top: 1px solid #e5e7eb !important; }
+        .border-bottom-light { border-bottom: 1px solid #e5e7eb !important; }
+        
+        .row { display: flex !important; flex-wrap: wrap !important; }
+        .col-6 { width: 50% !important; }
+        .col-12 { width: 100% !important; }
+        
+        .size-80 { width: 50px !important; height: 50px !important; }
+        .flex-center { display: flex !important; align-items: center !important; justify-content: center !important; }
+        .mx-auto { margin-left: auto !important; margin-right: auto !important; }
+        
+        i.icon-check, i.icon-info-circle, i.icon-arrow-right {
+          display: inline-block !important;
+          font-size: inherit !important;
+        }
+      }
+    `;
+    document.head.appendChild(styleTag);
+    
+    return () => {
+      document.head.removeChild(styleTag);
+    };
+  }, []);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuth, user, loading: authLoading } = useAuth();
@@ -994,7 +1109,7 @@ const FlightBookingPage = () => {
           }}
         >
           <div 
-            className="modal-content bg-white rounded-4 shadow-4"
+            className="modal-content comprobante-modal-print comprobante-modal-content bg-white rounded-4 shadow-4"
             style={{
               maxWidth: '600px',
               width: '90%',
@@ -1125,7 +1240,7 @@ const FlightBookingPage = () => {
             </div>
 
             {/* Botones */}
-            <div className="row x-gap-10">
+            <div className="row x-gap-10 no-print">
               <div className="col-6">
                 <button 
                   className="button -outline-blue-1 py-15 px-20 h-50 col-12 rounded-4"

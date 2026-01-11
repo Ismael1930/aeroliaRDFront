@@ -125,6 +125,7 @@ const GestionReservas = () => {
                     <tbody>
                       {reservasPaginadas.map((reserva) => {
                         const precio = reserva.PrecioTotal ?? reserva.precioTotal ?? reserva.monto ?? (reserva.Factura && (reserva.Factura.Monto ?? reserva.Factura.monto)) ?? '';
+                        const estado = reserva.Estado || reserva.estado || '';
                         return (
                         <tr key={reserva.Codigo || reserva.codigo || reserva.id}>
                           <td className="fw-500">{reserva.Codigo || reserva.codigo}</td>
@@ -132,7 +133,15 @@ const GestionReservas = () => {
                           <td>{reserva.Origen || reserva.origen || ''}</td>
                           <td>{reserva.Destino || reserva.destino || ''}</td>
                           <td>{reserva.Clase || reserva.clase || ''}</td>
-                          <td>{reserva.Estado || reserva.estado || ''}</td>
+                          <td>
+                            <span className={`py-10 px-15 rounded-100 text-12 fw-500 ${
+                              estado === 'Confirmada' ? 'bg-green-2 text-white' :
+                              estado === 'Cancelada' ? 'bg-red-2 text-white' :
+                              'bg-yellow-2 text-dark-1'
+                            }`}>
+                              {estado}
+                            </span>
+                          </td>
                           <td>{precio}</td>
                           <td>
                             <button className="button -sm -blue-1" onClick={() => openModal(reserva)} aria-label={`Ver ${reserva.Codigo || reserva.codigo}`}>
