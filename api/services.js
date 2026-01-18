@@ -20,6 +20,15 @@ export { buscarVuelos, obtenerVueloPorId } from './vueloService';
 export * as aeropuertoService from './aeropuertoService';
 export { obtenerAeropuertos, obtenerAeropuertoPorCodigo } from './aeropuertoService';
 
+// Rutas (para obtener duración entre aeropuertos)
+export * as rutaService from './rutaService';
+export { 
+  obtenerRutas, 
+  obtenerDuracionRuta, 
+  obtenerRutasDesde, 
+  obtenerRutasHacia 
+} from './rutaService';
+
 // Clientes
 export * as clienteService from './clienteService';
 export {

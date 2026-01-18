@@ -12,8 +12,8 @@ import {
   actualizarVuelo, 
   eliminarVuelo 
 } from "@/api/vueloAdminService";
-import { obtenerAeropuertos } from "@/api/aeropuertoService";
-import { obtenerTodasLasAeronaves } from "@/api/aeronaveService";
+import { obtenerAeropuertos, obtenerDuracionEntreAeropuertos } from "@/api/aeropuertoService";
+import { obtenerTodasLasAeronaves, obtenerAeronavesDisponiblesPorHorario } from "@/api/aeronaveService";
 
 // Función para formatear hora a formato 24h (HH:mm)
 const formatearHora = (hora) => {
@@ -26,6 +26,59 @@ const formatearHora = (hora) => {
     }
   }
   return hora;
+};
+
+// Función para convertir hora 24h (HH:mm) a formato 12h (hh:mm AM/PM)
+const formatearHora12h = (hora24) => {
+  if (!hora24) return '-';
+  const partes = hora24.split(':');
+  if (partes.length < 2) return hora24;
+  
+  let horas = parseInt(partes[0], 10);
+  const minutos = partes[1].padStart(2, '0');
+  const periodo = horas >= 12 ? 'PM' : 'AM';
+  
+  // Convertir a formato 12h
+  if (horas === 0) {
+    horas = 12;
+  } else if (horas > 12) {
+    horas = horas - 12;
+  }
+  
+  return `${horas}:${minutos} ${periodo}`;
+};
+
+// Formatea la duración (minutos o string) a formato "Xh Ym"
+const formatearDuracion = (duracion) => {
+  if (duracion === null || duracion === undefined || duracion === '') return '-';
+  // Si viene como número (minutos)
+  if (typeof duracion === 'number') {
+    const horas = Math.floor(duracion / 60);
+    const minutos = duracion % 60;
+    return `${horas}h ${minutos}m`;
+  }
+  // Si viene como string que representa minutos
+  if (!isNaN(Number(duracion))) {
+    const d = Number(duracion);
+    const horas = Math.floor(d / 60);
+    const minutos = d % 60;
+    return `${horas}h ${minutos}m`;
+  }
+  // Si ya viene formateado, devolver tal cual
+  return duracion;
+};
+
+// Calcula hora de llegada (HH:mm) a partir de horaSalida (HH:mm) y duracion (minutos)
+const calcularHoraLlegadaDesdeDuracion = (horaSalida, duracion) => {
+  if (!horaSalida || duracion === null || duracion === undefined || duracion === '') return '';
+  const minutosDuracion = Number(duracion);
+  if (isNaN(minutosDuracion)) return '';
+  const [hs, ms] = horaSalida.split(':').map(Number);
+  if (isNaN(hs) || isNaN(ms)) return '';
+  const totalMin = hs * 60 + ms + minutosDuracion;
+  const horaLleg = Math.floor((totalMin % (24 * 60)) / 60).toString().padStart(2, '0');
+  const minLleg = (totalMin % 60).toString().padStart(2, '0');
+  return `${horaLleg}:${minLleg}`;
 };
 
 // Función para verificar si la fecha del vuelo ya pasó (considerando fecha y hora)
@@ -77,6 +130,9 @@ const GestionVuelos = () => {
   const [vuelos, setVuelos] = useState([]);
   const [aeropuertos, setAeropuertos] = useState([]);
   const [aeronaves, setAeronaves] = useState([]);
+  const [aeronavesDisponibles, setAeronavesDisponibles] = useState([]);
+  const [aeronavesNoDisponibles, setAeronavesNoDisponibles] = useState([]);
+  const [cargandoAeronaves, setCargandoAeronaves] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
@@ -194,6 +250,49 @@ const GestionVuelos = () => {
       return null;
     }
   };
+
+  // Cargar aeronaves disponibles según fecha y horario
+  const cargarAeronavesDisponibles = async (fecha, horaSalida, horaLlegada, vueloId = null) => {
+    if (!fecha || !horaSalida || !horaLlegada) {
+      setAeronavesDisponibles([]);
+      setAeronavesNoDisponibles([]);
+      return;
+    }
+
+    try {
+      setCargandoAeronaves(true);
+      const response = await obtenerAeronavesDisponiblesPorHorario(
+        fecha, 
+        horaSalida, 
+        horaLlegada,
+        vueloId
+      );
+      
+      if (response.success && response.data) {
+        setAeronavesDisponibles(response.data.disponibles || []);
+        setAeronavesNoDisponibles(response.data.noDisponibles || []);
+      } else {
+        // Fallback a todas las aeronaves si el endpoint falla
+        setAeronavesDisponibles(aeronaves);
+        setAeronavesNoDisponibles([]);
+      }
+    } catch (err) {
+      console.error('Error al cargar aeronaves disponibles:', err);
+      // Fallback a todas las aeronaves
+      setAeronavesDisponibles(aeronaves);
+      setAeronavesNoDisponibles([]);
+    } finally {
+      setCargandoAeronaves(false);
+    }
+  };
+
+  // Efecto para cargar aeronaves cuando cambian fecha/horarios en el formulario
+  useEffect(() => {
+    if (mostrarModal && formulario.fecha && formulario.horaSalida && formulario.horaLlegada) {
+      const vueloId = modoEdicion ? formulario.id : null;
+      cargarAeronavesDisponibles(formulario.fecha, formulario.horaSalida, formulario.horaLlegada, vueloId);
+    }
+  }, [mostrarModal, formulario.fecha, formulario.horaSalida, formulario.horaLlegada]);
 
   // Generar número de vuelo automático basado en el último vuelo
   const generarNumeroVuelo = () => {
@@ -533,6 +632,7 @@ const GestionVuelos = () => {
                         <th>Fecha Regreso</th>
                         <th>Salida</th>
                         <th>Llegada</th>
+                        <th>Duración</th>
                         <th>Precio Base</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -594,6 +694,7 @@ const GestionVuelos = () => {
                           </td>
                           <td>{vuelo.horaSalidaFormato || formatearHora(vuelo.horaSalida)}</td>
                           <td>{vuelo.horaLlegadaFormato || formatearHora(vuelo.horaLlegada)}</td>
+                          <td>{formatearDuracion(vuelo.duracion)}</td>
                           <td className="fw-500">US${vuelo.precioBase?.toFixed(2) || '0.00'}</td>
                           <td>
                             <span className={`rounded-100 py-4 px-10 text-center text-14 fw-500 ${
@@ -747,271 +848,805 @@ const GestionVuelos = () => {
           <div 
             className="modal-content bg-white rounded-4"
             style={{
-              maxWidth: '800px',
-              width: '90%',
+              maxWidth: '750px',
+              width: '95%',
               maxHeight: '90vh',
               overflow: 'auto',
-              padding: '40px'
+              padding: '0'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-22 fw-600 mb-30">
-              {modoEdicion ? 'Editar Vuelo' : 'Nuevo Vuelo'}
-            </h3>
-
-            {/* Error en el modal */}
-            <ErrorAlert 
-              error={modalError} 
-              onClose={() => setModalError(null)} 
-            />
-
-            <form onSubmit={handleSubmit}>
-              <div className="row y-gap-20">
-                <div className="col-md-6">
-                  <div className="form-input">
-                    <input
-                      type="text"
-                      value={formulario.numeroVuelo}
-                      readOnly
-                      disabled
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
-                    />
-                    <label className="lh-1 text-14 text-light-1">
-                      Número de Vuelo (Automático)
-                    </label>
-                  </div>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="text-14 fw-500 mb-10 d-block">Aeronave</label>
-                  <select
-                    className="form-select"
-                    value={formulario.matricula}
-                    onChange={(e) => setFormulario({...formulario, matricula: e.target.value})}
-                    style={{
-                      width: '100%',
-                      height: '50px',
-                      padding: '0 20px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    <option value="">Seleccione aeronave</option>
-                    {aeronaves.map((a, index) => (
-                      <option key={a.matricula || `aeronave-${index}`} value={a.matricula}>
-                        {a.modelo} - {a.matricula}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="text-14 fw-500 mb-10 d-block">Origen</label>
-                  <select
-                    className="form-select"
-                    value={formulario.origenCodigo}
-                    onChange={(e) => setFormulario({...formulario, origenCodigo: e.target.value})}
-                    required
-                    style={{
-                      width: '100%',
-                      height: '50px',
-                      padding: '0 20px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    <option value="">Seleccione origen</option>
-                    {aeropuertos.map((a) => (
-                      <option key={`origen-${a.codigo}`} value={a.codigo}>
-                        {a.codigo} - {a.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="text-14 fw-500 mb-10 d-block">Destino</label>
-                  <select
-                    className="form-select"
-                    value={formulario.destinoCodigo}
-                    onChange={(e) => setFormulario({...formulario, destinoCodigo: e.target.value})}
-                    required
-                    style={{
-                      width: '100%',
-                      height: '50px',
-                      padding: '0 20px',
-                      border: formulario.origenCodigo && formulario.destinoCodigo && formulario.origenCodigo === formulario.destinoCodigo 
-                        ? '2px solid #dc3545' 
-                        : '1px solid #ddd',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    <option value="">Seleccione destino</option>
-                    {aeropuertos.map((a) => (
-                      <option key={`destino-${a.codigo}`} value={a.codigo}>
-                        {a.codigo} - {a.nombre}
-                      </option>
-                    ))}
-                  </select>
-                  {formulario.origenCodigo && formulario.destinoCodigo && formulario.origenCodigo === formulario.destinoCodigo && (
-                    <small className="text-danger d-block mt-5">El destino no puede ser igual al origen</small>
+            {/* Header del Modal */}
+            <div 
+              style={{ 
+                padding: '24px 30px', 
+                borderBottom: '1px solid #e5e7eb',
+                background: 'linear-gradient(135deg, #3554d1 0%, #1a3a8f 100%)',
+                borderRadius: '4px 4px 0 0'
+              }}
+            >
+              <div className="d-flex justify-between items-center">
+                <div>
+                  <h3 className="text-22 fw-600 text-white mb-5">
+                    {modoEdicion ? 'Editar Vuelo' : 'Nuevo Vuelo'}
+                  </h3>
+                  {formulario.numeroVuelo && (
+                    <div className="d-flex items-center gap-10">
+                      <span 
+                        className="text-14 fw-500"
+                        style={{ 
+                          background: 'rgba(255,255,255,0.2)', 
+                          padding: '4px 12px', 
+                          borderRadius: '20px',
+                          color: '#fff'
+                        }}
+                      >
+                        ✈️ {formulario.numeroVuelo}
+                      </span>
+                    </div>
                   )}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setMostrarModal(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontSize: '20px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
 
-                <div className="col-md-6">
-                  <div className="form-input">
-                    <input
-                      type="date"
-                      value={formulario.fecha}
-                      onChange={(e) => setFormulario({...formulario, fecha: e.target.value})}
-                      min={new Date().toISOString().split('T')[0]}
-                      required
-                      style={{
-                        border: formulario.fecha && new Date(formulario.fecha) < new Date(new Date().toISOString().split('T')[0])
-                          ? '2px solid #dc3545'
-                          : undefined
-                      }}
-                    />
-                    <label className="lh-1 text-14 text-light-1">Fecha</label>
+            {/* Contenido del Modal */}
+            <div style={{ padding: '24px 30px' }}>
+              {/* Error en el modal */}
+              <ErrorAlert 
+                error={modalError} 
+                onClose={() => setModalError(null)} 
+              />
+
+              <form onSubmit={handleSubmit}>
+                {/* SECCIÓN 1: Ruta del Vuelo */}
+                <div 
+                  style={{ 
+                    background: '#f8fafc', 
+                    borderRadius: '12px', 
+                    padding: '20px',
+                    marginBottom: '20px',
+                    border: '1px solid #e2e8f0'
+                  }}
+                >
+                  <div className="d-flex items-center gap-10 mb-20">
+                    <div style={{ 
+                      background: '#3554d1', 
+                      borderRadius: '8px', 
+                      width: '32px', 
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <i className="icon-location-2 text-white text-16"></i>
+                    </div>
+                    <h5 className="text-16 fw-600">Ruta del Vuelo</h5>
                   </div>
-                  {formulario.fecha && new Date(formulario.fecha) < new Date(new Date().toISOString().split('T')[0]) && (
-                    <small className="text-danger d-block mt-5">No se puede seleccionar una fecha pasada</small>
-                  )}
-                </div>
-
-                <div className="col-md-6">
-                  <div className="form-input">
-                    <input
-                      type="time"
-                      value={formulario.horaSalida}
-                      onChange={(e) => setFormulario({...formulario, horaSalida: e.target.value})}
-                      required
-                    />
-                    <label className="lh-1 text-14 text-light-1">Hora de Salida</label>
-                  </div>
-                </div>
-
-                <div className="col-md-6">
-                  <div className="form-input">
-                    <input
-                      type="time"
-                      value={formulario.horaLlegada}
-                      onChange={(e) => setFormulario({...formulario, horaLlegada: e.target.value})}
-                      required
-                      style={{
-                        border: formulario.horaSalida && formulario.horaLlegada && calcularDuracionMinutos() !== null && calcularDuracionMinutos() < 30
-                          ? '2px solid #dc3545'
-                          : undefined
-                      }}
-                    />
-                    <label className="lh-1 text-14 text-light-1">Hora de Llegada</label>
-                  </div>
-                  {formulario.horaSalida && formulario.horaLlegada && calcularDuracionMinutos() !== null && calcularDuracionMinutos() < 30 && (
-                    <small className="text-danger d-block mt-5">La duración del vuelo debe ser de al menos 30 minutos</small>
-                  )}
-                </div>
-
-                <div className="col-md-6">
-                  <div className="form-input">
-                    <input
-                      type="text"
-                      value={calcularDuracionDisplay()}
-                      readOnly
-                      placeholder="Calculada automáticamente"
-                    />
-                    <label className="lh-1 text-14 text-light-1">Duración (Automática)</label>
-                  </div>
-                </div>
-
-                <div className="col-md-6">
-                  <div className="form-input">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formulario.precioBase}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === '' || parseFloat(value) >= 0) {
-                          setFormulario({...formulario, precioBase: value});
-                        }
-                      }}
-                      required
-                      style={{
-                        border: formulario.precioBase !== '' && parseFloat(formulario.precioBase) < 0
-                          ? '2px solid #dc3545'
-                          : undefined
-                      }}
-                    />
-                    <label className="lh-1 text-14 text-light-1">Precio Base (USD)</label>
-                  </div>
-                  {formulario.precioBase !== '' && parseFloat(formulario.precioBase) < 0 && (
-                    <small className="text-danger d-block mt-5">El precio no puede ser negativo</small>
-                  )}
-                </div>
-
-                <div className="col-md-6">
-                  <label className="text-14 fw-500 mb-10 d-block">Tipo de Vuelo</label>
-                  <select
-                    className="form-select"
-                    value={formulario.tipoVuelo}
-                    onChange={(e) => setFormulario({...formulario, tipoVuelo: e.target.value, fechaRegreso: e.target.value === 'SoloIda' ? '' : formulario.fechaRegreso})}
-                    style={{
-                      width: '100%',
-                      height: '50px',
-                      padding: '0 20px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    <option value="IdaYVuelta">Ida y Vuelta</option>
-                    <option value="SoloIda">Solo Ida</option>
-                  </select>
-                </div>
-
-                {/* Campo de Fecha de Regreso - Solo visible para vuelos de Ida y Vuelta */}
-                {formulario.tipoVuelo === 'IdaYVuelta' && (
-                  <div className="col-md-6">
-                    <div className="form-input">
-                      <input
-                        type="date"
-                        value={formulario.fechaRegreso}
-                        onChange={(e) => setFormulario({...formulario, fechaRegreso: e.target.value})}
-                        min={formulario.fecha ? new Date(new Date(formulario.fecha).getTime() + 86400000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                  
+                  <div className="row y-gap-20">
+                    <div className="col-md-6">
+                      <label className="text-13 fw-500 mb-10 d-block text-dark-1">Origen *</label>
+                      <select
+                        className="form-select"
+                        value={formulario.origenCodigo}
+                        onChange={async (e) => {
+                          const origenNuevo = e.target.value;
+                          if (origenNuevo && formulario.destinoCodigo) {
+                            try {
+                              const resp = await obtenerDuracionEntreAeropuertos(origenNuevo, formulario.destinoCodigo, formulario.horaSalida);
+                              if (!resp) {
+                                setFormulario({...formulario, origenCodigo: origenNuevo});
+                              } else if (resp.success === true && resp.duracion !== undefined) {
+                                const nuevoFormulario = { 
+                                  ...formulario, 
+                                  origenCodigo: origenNuevo, 
+                                  duracion: resp.duracion 
+                                };
+                                // Usar horaLlegadaCalculada (24h) para enviar al backend
+                                if (resp.horaLlegadaCalculada && formulario.horaSalida) {
+                                  nuevoFormulario.horaLlegada = resp.horaLlegadaCalculada.substring(0, 5);
+                                } else if (formulario.horaSalida) {
+                                  nuevoFormulario.horaLlegada = calcularHoraLlegadaDesdeDuracion(formulario.horaSalida, resp.duracion);
+                                }
+                                if (resp.precioSugerido) {
+                                  nuevoFormulario.precioBase = resp.precioSugerido;
+                                }
+                                setFormulario(nuevoFormulario);
+                                return;
+                              } else if (resp.success === false) {
+                                setModalError(resp.message || 'Error al obtener información de la ruta');
+                                setFormulario({ ...formulario, origenCodigo: origenNuevo });
+                                return;
+                              }
+                            } catch (err) {
+                              console.debug('No se pudo obtener información de ruta (origen):', err?.message || err);
+                              setFormulario({...formulario, origenCodigo: origenNuevo});
+                            }
+                          } else {
+                            setFormulario({...formulario, origenCodigo: origenNuevo});
+                          }
+                        }}
                         required
                         style={{
-                          border: formulario.fechaRegreso && formulario.fecha && new Date(formulario.fechaRegreso) <= new Date(formulario.fecha)
-                            ? '2px solid #dc3545'
-                            : undefined
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff'
                         }}
-                      />
-                      <label className="lh-1 text-14 text-light-1">Fecha de Regreso</label>
+                      >
+                        <option value="">Seleccione origen</option>
+                        {aeropuertos.map((a) => (
+                          <option key={a.codigo} value={a.codigo}>
+                            {a.codigo} - {a.nombre}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    {formulario.fechaRegreso && formulario.fecha && new Date(formulario.fechaRegreso) <= new Date(formulario.fecha) && (
-                      <small className="text-danger d-block mt-5">La fecha de regreso debe ser posterior a la fecha de ida</small>
-                    )}
-                  </div>
-                )}
 
-                <div className="col-12 mt-20">
-                  <div className="d-flex gap-10 justify-end">
-                    <button
-                      type="button"
-                      className="button h-50 px-24 -outline-blue-1"
-                      onClick={() => setMostrarModal(false)}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="button h-50 px-24 -dark-1 bg-blue-1 text-white"
-                    >
-                      {modoEdicion ? 'Actualizar' : 'Crear'} Vuelo
-                    </button>
+                    <div className="col-md-6">
+                      <label className="text-13 fw-500 mb-10 d-block text-dark-1">Destino *</label>
+                      <select
+                        className="form-select"
+                        value={formulario.destinoCodigo}
+                        onChange={async (e) => {
+                          const destinoNuevo = e.target.value;
+                          if (formulario.origenCodigo && destinoNuevo) {
+                            try {
+                              const resp = await obtenerDuracionEntreAeropuertos(formulario.origenCodigo, destinoNuevo, formulario.horaSalida);
+                              if (!resp) {
+                                if (formulario.horaSalida && formulario.duracion) {
+                                  const nuevaHoraLlegada = calcularHoraLlegadaDesdeDuracion(formulario.horaSalida, formulario.duracion);
+                                  setFormulario({ ...formulario, destinoCodigo: destinoNuevo, horaLlegada: nuevaHoraLlegada });
+                                } else {
+                                  setFormulario({ ...formulario, destinoCodigo: destinoNuevo });
+                                }
+                              } else if (resp.success === true && resp.duracion !== undefined) {
+                                const nuevoFormulario = { 
+                                  ...formulario, 
+                                  destinoCodigo: destinoNuevo, 
+                                  duracion: resp.duracion 
+                                };
+                                // Usar horaLlegadaCalculada (24h) para enviar al backend
+                                if (resp.horaLlegadaCalculada && formulario.horaSalida) {
+                                  nuevoFormulario.horaLlegada = resp.horaLlegadaCalculada.substring(0, 5);
+                                } else if (formulario.horaSalida) {
+                                  nuevoFormulario.horaLlegada = calcularHoraLlegadaDesdeDuracion(formulario.horaSalida, resp.duracion);
+                                }
+                                if (resp.precioSugerido) {
+                                  nuevoFormulario.precioBase = resp.precioSugerido;
+                                }
+                                setFormulario(nuevoFormulario);
+                                return;
+                              } else if (resp.success === false) {
+                                setModalError(resp.message || 'Error al obtener información de la ruta');
+                                setFormulario({ ...formulario, destinoCodigo: destinoNuevo });
+                                return;
+                              }
+                            } catch (err) {
+                              console.debug('No se pudo obtener información de ruta (destino):', err?.message || err);
+                            }
+                          }
+                          if (formulario.horaSalida && formulario.duracion) {
+                            const nuevaHoraLlegada = calcularHoraLlegadaDesdeDuracion(formulario.horaSalida, formulario.duracion);
+                            setFormulario({ ...formulario, destinoCodigo: destinoNuevo, horaLlegada: nuevaHoraLlegada });
+                          } else {
+                            setFormulario({ ...formulario, destinoCodigo: destinoNuevo });
+                          }
+                        }}
+                        required
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: formulario.origenCodigo && formulario.destinoCodigo && formulario.origenCodigo === formulario.destinoCodigo 
+                            ? '2px solid #dc3545' 
+                            : '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff'
+                        }}
+                      >
+                        <option value="">Seleccione destino</option>
+                        {aeropuertos.map((a) => (
+                          <option key={`destino-${a.codigo}`} value={a.codigo}>
+                            {a.codigo} - {a.nombre}
+                          </option>
+                        ))}
+                      </select>
+                      {formulario.origenCodigo && formulario.destinoCodigo && formulario.origenCodigo === formulario.destinoCodigo && (
+                        <small className="text-danger d-block mt-5">El destino no puede ser igual al origen</small>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </form>
+
+                {/* SECCIÓN 2: Fecha y Horarios */}
+                <div 
+                  style={{ 
+                    background: '#f8fafc', 
+                    borderRadius: '12px', 
+                    padding: '20px',
+                    marginBottom: '20px',
+                    border: '1px solid #e2e8f0'
+                  }}
+                >
+                  <div className="d-flex items-center gap-10 mb-20">
+                    <div style={{ 
+                      background: '#f59e0b', 
+                      borderRadius: '8px', 
+                      width: '32px', 
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <i className="icon-calendar text-white text-16"></i>
+                    </div>
+                    <h5 className="text-16 fw-600">Fecha y Horarios</h5>
+                  </div>
+                  
+                  <div className="row y-gap-20">
+                    <div className="col-md-6">
+                      <label className="text-13 fw-500 mb-10 d-block text-dark-1">Fecha de Salida *</label>
+                      <input
+                        type="date"
+                        value={formulario.fecha}
+                        onChange={(e) => setFormulario({...formulario, fecha: e.target.value})}
+                        min={new Date().toISOString().split('T')[0]}
+                        required
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: formulario.fecha && new Date(formulario.fecha) < new Date(new Date().toISOString().split('T')[0])
+                            ? '2px solid #dc3545'
+                            : '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff'
+                        }}
+                      />
+                      {formulario.fecha && new Date(formulario.fecha) < new Date(new Date().toISOString().split('T')[0]) && (
+                        <small className="text-danger d-block mt-5">No se puede seleccionar una fecha pasada</small>
+                      )}
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="text-13 fw-500 mb-10 d-block text-dark-1">Hora de Salida *</label>
+                      <input
+                        type="time"
+                        value={formulario.horaSalida}
+                        onChange={async (e) => {
+                          const hora = e.target.value;
+                          if (formulario.origenCodigo && formulario.destinoCodigo && hora) {
+                            try {
+                              const resp = await obtenerDuracionEntreAeropuertos(
+                                formulario.origenCodigo, 
+                                formulario.destinoCodigo, 
+                                hora
+                              );
+                              if (resp?.success && resp.horaLlegadaCalculada) {
+                                // Usar formato 24h para enviar al backend
+                                const horaLlegada = resp.horaLlegadaCalculada.substring(0, 5);
+                                const nuevoFormulario = { 
+                                  ...formulario, 
+                                  horaSalida: hora, 
+                                  horaLlegada,
+                                  duracion: resp.duracion || formulario.duracion
+                                };
+                                if (resp.precioSugerido) {
+                                  nuevoFormulario.precioBase = resp.precioSugerido;
+                                }
+                                setFormulario(nuevoFormulario);
+                                return;
+                              }
+                            } catch (err) {
+                              console.debug('No se pudo obtener hora de llegada del backend:', err?.message || err);
+                            }
+                          }
+                          if (formulario.duracion) {
+                            const nuevaHoraLlegada = calcularHoraLlegadaDesdeDuracion(hora, formulario.duracion);
+                            setFormulario({ ...formulario, horaSalida: hora, horaLlegada: nuevaHoraLlegada });
+                          } else {
+                            setFormulario({ ...formulario, horaSalida: hora });
+                          }
+                        }}
+                        required
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECCIÓN 3: Aeronave */}
+                <div 
+                  style={{ 
+                    background: '#f8fafc', 
+                    borderRadius: '12px', 
+                    padding: '20px',
+                    marginBottom: '20px',
+                    border: '1px solid #e2e8f0'
+                  }}
+                >
+                  <div className="d-flex items-center justify-between mb-10">
+                    <div className="d-flex items-center gap-10">
+                      <div style={{ 
+                        background: '#8b5cf6', 
+                        borderRadius: '8px', 
+                        width: '32px', 
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <i className="icon-airplane text-white text-16"></i>
+                      </div>
+                      <h5 className="text-16 fw-600">Aeronave</h5>
+                    </div>
+                    {cargandoAeronaves && (
+                      <span className="text-12 text-light-1">
+                        <i className="icon-loading animate-spin mr-5"></i>
+                        Verificando disponibilidad...
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Mensaje de requisitos */}
+                  {(!formulario.fecha || !formulario.horaSalida || !formulario.horaLlegada) ? (
+                    <div 
+                      style={{ 
+                        background: '#fef3c7', 
+                        border: '1px solid #fcd34d',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        marginBottom: '15px'
+                      }}
+                    >
+                      <p className="text-13 text-dark-1 mb-0">
+                        <i className="icon-info text-14 mr-10" style={{ color: '#d97706' }}></i>
+                        Complete la <strong>fecha</strong> y <strong>hora de salida</strong> para ver las aeronaves disponibles en ese horario.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-13 text-light-1 mb-15">
+                      Mostrando aeronaves disponibles para el {formulario.fecha} de {formatearHora12h(formulario.horaSalida)} a {formatearHora12h(formulario.horaLlegada)}
+                    </p>
+                  )}
+                  
+                  <div className="row y-gap-20">
+                    <div className="col-12">
+                      <label className="text-13 fw-500 mb-10 d-block text-dark-1">
+                        Seleccionar Aeronave *
+                        {aeronavesDisponibles.length > 0 && (
+                          <span className="text-green-2 ml-10">
+                            ({aeronavesDisponibles.length} disponible{aeronavesDisponibles.length !== 1 ? 's' : ''})
+                          </span>
+                        )}
+                      </label>
+                      
+                      {/* Select de aeronaves disponibles */}
+                      {formulario.fecha && formulario.horaSalida && formulario.horaLlegada ? (
+                        <>
+                          <select
+                            className="form-select"
+                            value={formulario.matricula}
+                            onChange={(e) => setFormulario({...formulario, matricula: e.target.value})}
+                            required
+                            disabled={cargandoAeronaves}
+                            style={{
+                              width: '100%',
+                              height: '48px',
+                              padding: '0 16px',
+                              border: aeronavesDisponibles.length === 0 && !cargandoAeronaves 
+                                ? '2px solid #dc3545' 
+                                : '1px solid #e2e8f0',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              background: cargandoAeronaves ? '#f3f4f6' : '#fff'
+                            }}
+                          >
+                            <option value="">
+                              {cargandoAeronaves 
+                                ? 'Cargando aeronaves...' 
+                                : aeronavesDisponibles.length === 0 
+                                  ? 'No hay aeronaves disponibles' 
+                                  : 'Seleccione aeronave'}
+                            </option>
+                            {aeronavesDisponibles.map((a) => (
+                              <option key={a.matricula} value={a.matricula}>
+                                {a.modelo} - {a.matricula} ({a.capacidad} asientos)
+                                {a.vuelosDelDia > 0 ? ` • ${a.vuelosDelDia} vuelo(s) hoy` : ''}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Información de la aeronave seleccionada */}
+                          {formulario.matricula && aeronavesDisponibles.find(a => a.matricula === formulario.matricula) && (
+                            <div 
+                              style={{ 
+                                marginTop: '12px',
+                                padding: '12px 16px',
+                                background: '#f0fdf4',
+                                border: '1px solid #86efac',
+                                borderRadius: '8px'
+                              }}
+                            >
+                              {(() => {
+                                const aeronaveSeleccionada = aeronavesDisponibles.find(a => a.matricula === formulario.matricula);
+                                return (
+                                  <div className="row y-gap-10">
+                                    <div className="col-md-6">
+                                      <div className="text-12 text-light-1">Aeronave</div>
+                                      <div className="text-14 fw-500">{aeronaveSeleccionada.modelo}</div>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <div className="text-12 text-light-1">Capacidad</div>
+                                      <div className="text-14 fw-500">{aeronaveSeleccionada.capacidad} pasajeros</div>
+                                    </div>
+                                    {aeronaveSeleccionada.equipoAsignado && (
+                                      <div className="col-md-6">
+                                        <div className="text-12 text-light-1">Equipo Asignado</div>
+                                        <div className="text-14 fw-500">
+                                          {aeronaveSeleccionada.equipoAsignado.nombre}
+                                          <span 
+                                            className="ml-10 text-12"
+                                            style={{
+                                              background: aeronaveSeleccionada.equipoAsignado.estado === 'Disponible' ? '#dcfce7' : '#fef3c7',
+                                              color: aeronaveSeleccionada.equipoAsignado.estado === 'Disponible' ? '#166534' : '#92400e',
+                                              padding: '2px 8px',
+                                              borderRadius: '12px'
+                                            }}
+                                          >
+                                            {aeronaveSeleccionada.equipoAsignado.estado}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {aeronaveSeleccionada.proximoVuelo && (
+                                      <div className="col-md-6">
+                                        <div className="text-12 text-light-1">Próximo Vuelo</div>
+                                        <div className="text-14 fw-500">
+                                          {aeronaveSeleccionada.proximoVuelo.numeroVuelo} • {aeronaveSeleccionada.proximoVuelo.ruta}
+                                        </div>
+                                        <div className="text-12 text-light-1">
+                                          {aeronaveSeleccionada.proximoVuelo.horaSalida} - {aeronaveSeleccionada.proximoVuelo.horaLlegada}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {aeronaveSeleccionada.asientosPorClase && (
+                                      <div className="col-12">
+                                        <div className="text-12 text-light-1 mb-5">Distribución de asientos</div>
+                                        <div className="d-flex gap-15">
+                                          <span className="text-12">
+                                            <strong>Primera:</strong> {aeronaveSeleccionada.asientosPorClase.primera || 0}
+                                          </span>
+                                          <span className="text-12">
+                                            <strong>Ejecutiva:</strong> {aeronaveSeleccionada.asientosPorClase.ejecutiva || 0}
+                                          </span>
+                                          <span className="text-12">
+                                            <strong>Económica:</strong> {aeronaveSeleccionada.asientosPorClase.economica || 0}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          )}
+
+                          {/* Aeronaves no disponibles (colapsable) */}
+                          {aeronavesNoDisponibles.length > 0 && (
+                            <details style={{ marginTop: '15px' }}>
+                              <summary 
+                                style={{ 
+                                  cursor: 'pointer', 
+                                  color: '#6b7280',
+                                  fontSize: '13px',
+                                  userSelect: 'none'
+                                }}
+                              >
+                                Ver {aeronavesNoDisponibles.length} aeronave(s) no disponible(s)
+                              </summary>
+                              <div 
+                                style={{ 
+                                  marginTop: '10px',
+                                  maxHeight: '200px',
+                                  overflowY: 'auto'
+                                }}
+                              >
+                                {aeronavesNoDisponibles.map((a) => (
+                                  <div 
+                                    key={a.matricula}
+                                    style={{
+                                      padding: '10px 14px',
+                                      background: '#fef2f2',
+                                      border: '1px solid #fecaca',
+                                      borderRadius: '6px',
+                                      marginBottom: '8px'
+                                    }}
+                                  >
+                                    <div className="d-flex justify-between items-start">
+                                      <div>
+                                        <div className="text-14 fw-500">{a.modelo} - {a.matricula}</div>
+                                        <div className="text-12 text-red-1 mt-5">{a.razon}</div>
+                                        {a.disponibleDesde && (
+                                          <div className="text-12 text-light-1 mt-5">
+                                            Disponible desde: <strong>{a.disponibleDesde}</strong>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <span 
+                                        style={{
+                                          background: a.codigoRazon === 'NO_OPERATIVA' ? '#fef2f2' : 
+                                                     a.codigoRazon === 'SIN_EQUIPO' ? '#fffbeb' : '#fef2f2',
+                                          color: a.codigoRazon === 'NO_OPERATIVA' ? '#991b1b' : 
+                                                 a.codigoRazon === 'SIN_EQUIPO' ? '#92400e' : '#991b1b',
+                                          padding: '2px 8px',
+                                          borderRadius: '4px',
+                                          fontSize: '11px',
+                                          fontWeight: '500'
+                                        }}
+                                      >
+                                        {a.codigoRazon === 'NO_OPERATIVA' ? 'Mantenimiento' : 
+                                         a.codigoRazon === 'SIN_EQUIPO' ? 'Sin Tripulación' : 'Conflicto'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
+                          )}
+                        </>
+                      ) : (
+                        /* Fallback: Select con todas las aeronaves si no hay horario */
+                        <select
+                          className="form-select"
+                          value={formulario.matricula}
+                          onChange={(e) => setFormulario({...formulario, matricula: e.target.value})}
+                          required
+                          style={{
+                            width: '100%',
+                            height: '48px',
+                            padding: '0 16px',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            background: '#fff'
+                          }}
+                        >
+                          <option value="">Seleccione aeronave</option>
+                          {aeronaves.map((a, index) => (
+                            <option key={a.matricula || `aeronave-${index}`} value={a.matricula}>
+                              {a.modelo} - {a.matricula}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECCIÓN 4: Campos Calculados */}
+                <div 
+                  style={{ 
+                    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', 
+                    borderRadius: '12px', 
+                    padding: '20px',
+                    marginBottom: '20px',
+                    border: '1px solid #a7f3d0'
+                  }}
+                >
+                  <div className="d-flex items-center gap-10 mb-10">
+                    <div style={{ 
+                      background: '#10b981', 
+                      borderRadius: '8px', 
+                      width: '32px', 
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <i className="icon-check text-white text-16"></i>
+                    </div>
+                    <h5 className="text-16 fw-600 text-green-2">Campos Calculados</h5>
+                  </div>
+                  <p className="text-13 text-light-1 mb-20">
+                    Estos valores se calculan automáticamente según la ruta seleccionada
+                  </p>
+                  
+                  <div className="row y-gap-15">
+                    <div className="col-md-4">
+                      <label className="text-12 fw-500 mb-8 d-block text-dark-1">Hora de Llegada</label>
+                      <div 
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: '1px solid #a7f3d0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: formulario.horaLlegada ? '#1f2937' : '#9ca3af'
+                        }}
+                      >
+                        {formulario.horaLlegada ? formatearHora12h(formulario.horaLlegada) : '--:--'}
+                      </div>
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className="text-12 fw-500 mb-8 d-block text-dark-1">Duración</label>
+                      <div 
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: '1px solid #a7f3d0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: formulario.duracion ? '#1f2937' : '#9ca3af'
+                        }}
+                      >
+                        {(formulario.duracion !== '' && formulario.duracion !== null)
+                          ? formatearDuracion(formulario.duracion)
+                          : '--'}
+                      </div>
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className="text-12 fw-500 mb-8 d-block text-dark-1">Precio Base</label>
+                      <div 
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: '1px solid #a7f3d0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          fontWeight: '600',
+                          color: formulario.precioBase ? '#059669' : '#9ca3af'
+                        }}
+                      >
+                        {formulario.precioBase ? `$${parseFloat(formulario.precioBase).toFixed(2)} USD` : '--'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECCIÓN 5: Tipo de Vuelo */}
+                <div 
+                  style={{ 
+                    background: '#f8fafc', 
+                    borderRadius: '12px', 
+                    padding: '20px',
+                    marginBottom: '24px',
+                    border: '1px solid #e2e8f0'
+                  }}
+                >
+                  <div className="d-flex items-center gap-10 mb-20">
+                    <div style={{ 
+                      background: '#ec4899', 
+                      borderRadius: '8px', 
+                      width: '32px', 
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <i className="icon-route text-white text-16"></i>
+                    </div>
+                    <h5 className="text-16 fw-600">Tipo de Vuelo</h5>
+                  </div>
+                  
+                  <div className="row y-gap-20">
+                    <div className="col-md-6">
+                      <label className="text-13 fw-500 mb-10 d-block text-dark-1">Tipo</label>
+                      <select
+                        className="form-select"
+                        value={formulario.tipoVuelo}
+                        onChange={(e) => setFormulario({...formulario, tipoVuelo: e.target.value, fechaRegreso: e.target.value === 'SoloIda' ? '' : formulario.fechaRegreso})}
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          padding: '0 16px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          background: '#fff'
+                        }}
+                      >
+                        <option value="IdaYVuelta">Ida y Vuelta</option>
+                        <option value="SoloIda">Solo Ida</option>
+                      </select>
+                    </div>
+
+                    {formulario.tipoVuelo === 'IdaYVuelta' && (
+                      <div className="col-md-6">
+                        <label className="text-13 fw-500 mb-10 d-block text-dark-1">Fecha de Regreso *</label>
+                        <input
+                          type="date"
+                          value={formulario.fechaRegreso}
+                          onChange={(e) => setFormulario({...formulario, fechaRegreso: e.target.value})}
+                          min={formulario.fecha ? new Date(new Date(formulario.fecha).getTime() + 86400000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                          required
+                          style={{
+                            width: '100%',
+                            height: '48px',
+                            padding: '0 16px',
+                            border: formulario.fechaRegreso && formulario.fecha && new Date(formulario.fechaRegreso) <= new Date(formulario.fecha)
+                              ? '2px solid #dc3545'
+                              : '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            background: '#fff'
+                          }}
+                        />
+                        {formulario.fechaRegreso && formulario.fecha && new Date(formulario.fechaRegreso) <= new Date(formulario.fecha) && (
+                          <small className="text-danger d-block mt-5">La fecha de regreso debe ser posterior a la fecha de ida</small>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Botones de acción */}
+                <div className="d-flex gap-15 justify-end pt-20" style={{ borderTop: '1px solid #e2e8f0' }}>
+                  <button
+                    type="button"
+                    className="button h-50 px-30 -outline-dark-1 text-dark-1"
+                    onClick={() => setMostrarModal(false)}
+                    style={{ borderRadius: '8px' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="button h-50 px-30 -dark-1 bg-blue-1 text-white"
+                    style={{ borderRadius: '8px' }}
+                  >
+                    {modoEdicion ? 'Actualizar' : 'Crear'} Vuelo
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -108,3 +108,25 @@ export const obtenerDisponibilidadAeronave = async (matricula) => {
     throw error;
   }
 };
+
+/**
+ * Obtener aeronaves disponibles para un horario específico
+ * @param {string} fecha - Fecha del vuelo (formato YYYY-MM-DD)
+ * @param {string} horaSalida - Hora de salida (formato HH:mm)
+ * @param {string} horaLlegada - Hora de llegada (formato HH:mm)
+ * @param {number} vueloIdExcluir - ID del vuelo a excluir (para edición)
+ * @returns {Promise<Object>} Lista de aeronaves disponibles y no disponibles con detalles
+ */
+export const obtenerAeronavesDisponiblesPorHorario = async (fecha, horaSalida, horaLlegada, vueloIdExcluir = null) => {
+  try {
+    const params = { fecha, horaSalida, horaLlegada };
+    if (vueloIdExcluir) {
+      params.vueloIdExcluir = vueloIdExcluir;
+    }
+    const response = await api.get('/aeronave/disponibles-horario', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error en obtenerAeronavesDisponiblesPorHorario:', error);
+    throw error;
+  }
+};
