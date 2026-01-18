@@ -78,6 +78,54 @@ export const obtenerDuracionRuta = async (origen, destino, horaSalida = null) =>
 };
 
 /**
+ * Obtener horas disponibles para una ruta en una fecha específica
+ * @param {string} origen - Código del aeropuerto de origen (ej: "SDQ")
+ * @param {string} destino - Código del aeropuerto de destino (ej: "JFK")
+ * @param {string} fecha - Fecha del vuelo (formato "YYYY-MM-DD")
+ * @returns {Promise<Object>} Horas disponibles y ocupadas
+ * 
+ * Ejemplo de respuesta:
+ * {
+ *   success: true,
+ *   data: {
+ *     origenCodigo: "TEST",
+ *     destinoCodigo: "SDQ",
+ *     fecha: "2026-01-19",
+ *     fechaFormato: "lunes, 19 de enero de 2026",
+ *     capacidadPorHora: 1,
+ *     origenNombre: "Aeropuerto de Prueba",
+ *     horasDisponibles: [
+ *       { hora: "05:00", horaFormato: "5:00 AM", valor: "05:00", horaLlegadaFormato: "5:30 AM", espaciosDisponibles: 1 }
+ *     ],
+ *     horasOcupadas: [
+ *       { hora: "10:00", horaFormato: "10:00 AM", vuelosProgramados: 1, saturada: true, vuelosEnHora: ["TEST-1000"] }
+ *     ],
+ *     infoRuta: { duracionMinutos: 30, precioSugerido: 100 }
+ *   }
+ * }
+ */
+export const obtenerHorasDisponibles = async (origen, destino, fecha) => {
+  try {
+    const params = { origen, destino, fecha };
+    const response = await api.get('/ruta/horas-disponibles', { params });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return {
+        success: false,
+        data: {
+          horasDisponibles: [],
+          horasOcupadas: [],
+          infoRuta: null
+        }
+      };
+    }
+    console.error('Error en obtenerHorasDisponibles:', error);
+    throw error;
+  }
+};
+
+/**
  * Obtener rutas desde un aeropuerto de origen
  * @param {string} origen - Código del aeropuerto de origen (ej: "SDQ")
  */

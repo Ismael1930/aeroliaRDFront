@@ -14,6 +14,7 @@ import {
 } from "@/api/vueloAdminService";
 import { obtenerAeropuertos, obtenerDuracionEntreAeropuertos } from "@/api/aeropuertoService";
 import { obtenerTodasLasAeronaves, obtenerAeronavesDisponiblesPorHorario } from "@/api/aeronaveService";
+import { obtenerHorasDisponibles } from "@/api/rutaService";
 
 // Función para formatear hora a formato 24h (HH:mm)
 const formatearHora = (hora) => {
@@ -133,6 +134,11 @@ const GestionVuelos = () => {
   const [aeronavesDisponibles, setAeronavesDisponibles] = useState([]);
   const [aeronavesNoDisponibles, setAeronavesNoDisponibles] = useState([]);
   const [cargandoAeronaves, setCargandoAeronaves] = useState(false);
+  // Estados para horas disponibles del endpoint
+  const [horasDisponibles, setHorasDisponibles] = useState([]);
+  const [horasOcupadas, setHorasOcupadas] = useState([]);
+  const [infoRuta, setInfoRuta] = useState(null);
+  const [cargandoHoras, setCargandoHoras] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
@@ -285,6 +291,58 @@ const GestionVuelos = () => {
       setCargandoAeronaves(false);
     }
   };
+
+  // Cargar horas disponibles desde el backend
+  const cargarHorasDisponiblesBackend = async (origen, destino, fecha) => {
+    if (!origen || !destino || !fecha) {
+      setHorasDisponibles([]);
+      setHorasOcupadas([]);
+      setInfoRuta(null);
+      return;
+    }
+
+    try {
+      setCargandoHoras(true);
+      const response = await obtenerHorasDisponibles(origen, destino, fecha);
+      
+      if (response.success && response.data) {
+        setHorasDisponibles(response.data.horasDisponibles || []);
+        setHorasOcupadas(response.data.horasOcupadas || []);
+        setInfoRuta(response.data.infoRuta || null);
+        
+        // Si hay info de ruta, actualizar duración y precio en el formulario
+        if (response.data.infoRuta) {
+          setFormulario(prev => ({
+            ...prev,
+            duracion: response.data.infoRuta.duracionMinutos || prev.duracion,
+            precioBase: response.data.infoRuta.precioSugerido || prev.precioBase
+          }));
+        }
+      } else {
+        setHorasDisponibles([]);
+        setHorasOcupadas([]);
+        setInfoRuta(null);
+      }
+    } catch (err) {
+      console.error('Error al cargar horas disponibles:', err);
+      setHorasDisponibles([]);
+      setHorasOcupadas([]);
+      setInfoRuta(null);
+    } finally {
+      setCargandoHoras(false);
+    }
+  };
+
+  // Efecto para cargar horas disponibles cuando cambian origen, destino o fecha
+  useEffect(() => {
+    if (mostrarModal && formulario.origenCodigo && formulario.destinoCodigo && formulario.fecha) {
+      cargarHorasDisponiblesBackend(formulario.origenCodigo, formulario.destinoCodigo, formulario.fecha);
+    } else {
+      setHorasDisponibles([]);
+      setHorasOcupadas([]);
+      setInfoRuta(null);
+    }
+  }, [mostrarModal, formulario.origenCodigo, formulario.destinoCodigo, formulario.fecha]);
 
   // Efecto para cargar aeronaves cuando cambian fecha/horarios en el formulario
   useEffect(() => {
@@ -481,6 +539,10 @@ const GestionVuelos = () => {
       }
       setMostrarModal(false);
       setModalError(null);
+      // Limpiar estados de horas disponibles
+      setHorasDisponibles([]);
+      setHorasOcupadas([]);
+      setInfoRuta(null);
       cargarDatos();
     } catch (error) {
       console.error('Error al guardar vuelo:', error);
@@ -1134,56 +1196,143 @@ const GestionVuelos = () => {
                     </div>
 
                     <div className="col-md-6">
-                      <label className="text-13 fw-500 mb-10 d-block text-dark-1">Hora de Salida *</label>
-                      <input
-                        type="time"
+                      <div className="d-flex items-center justify-between mb-10">
+                        <label className="text-13 fw-500 d-block text-dark-1">Hora de Salida *</label>
+                        {cargandoHoras && (
+                          <span className="text-11 text-light-1">
+                            <i className="icon-loading animate-spin mr-5"></i>
+                            Cargando horarios...
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Mensaje informativo */}
+                      {(!formulario.origenCodigo || !formulario.destinoCodigo || !formulario.fecha) && (
+                        <div 
+                          style={{ 
+                            background: '#dbeafe', 
+                            border: '1px solid #93c5fd',
+                            borderRadius: '6px',
+                            padding: '8px 12px',
+                            marginBottom: '10px',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <i className="icon-info text-12 mr-5" style={{ color: '#2563eb' }}></i>
+                          Complete ruta y fecha para ver horarios disponibles
+                        </div>
+                      )}
+                      
+                      {horasOcupadas.length > 0 && (
+                        <div 
+                          style={{ 
+                            background: '#fef3c7', 
+                            border: '1px solid #fcd34d',
+                            borderRadius: '6px',
+                            padding: '8px 12px',
+                            marginBottom: '10px',
+                            fontSize: '12px'
+                          }}
+                        >
+                          <i className="icon-info text-12 mr-5" style={{ color: '#d97706' }}></i>
+                          {horasOcupadas.length} horario(s) ocupado(s) - Solo se muestran horas disponibles
+                        </div>
+                      )}
+
+                      <select
                         value={formulario.horaSalida}
-                        onChange={async (e) => {
+                        onChange={(e) => {
                           const hora = e.target.value;
-                          if (formulario.origenCodigo && formulario.destinoCodigo && hora) {
-                            try {
-                              const resp = await obtenerDuracionEntreAeropuertos(
-                                formulario.origenCodigo, 
-                                formulario.destinoCodigo, 
-                                hora
-                              );
-                              if (resp?.success && resp.horaLlegadaCalculada) {
-                                // Usar formato 24h para enviar al backend
-                                const horaLlegada = resp.horaLlegadaCalculada.substring(0, 5);
-                                const nuevoFormulario = { 
-                                  ...formulario, 
-                                  horaSalida: hora, 
-                                  horaLlegada,
-                                  duracion: resp.duracion || formulario.duracion
-                                };
-                                if (resp.precioSugerido) {
-                                  nuevoFormulario.precioBase = resp.precioSugerido;
-                                }
-                                setFormulario(nuevoFormulario);
-                                return;
-                              }
-                            } catch (err) {
-                              console.debug('No se pudo obtener hora de llegada del backend:', err?.message || err);
-                            }
-                          }
-                          if (formulario.duracion) {
-                            const nuevaHoraLlegada = calcularHoraLlegadaDesdeDuracion(hora, formulario.duracion);
-                            setFormulario({ ...formulario, horaSalida: hora, horaLlegada: nuevaHoraLlegada });
+                          // Buscar la hora seleccionada para obtener la hora de llegada
+                          const horaInfo = horasDisponibles.find(h => h.valor === hora || h.hora === hora);
+                          
+                          if (horaInfo && horaInfo.horaLlegadaFormato) {
+                            // Convertir horaLlegadaFormato (12h) a 24h si es necesario
+                            // El backend ya envía el valor en formato 24h en 'valor'
+                            // Calcular hora llegada desde la duración conocida
+                            const horaLlegada = calcularHoraLlegadaDesdeDuracion(hora, formulario.duracion || infoRuta?.duracionMinutos || 120);
+                            setFormulario({ 
+                              ...formulario, 
+                              horaSalida: hora,
+                              horaLlegada
+                            });
+                          } else if (formulario.duracion) {
+                            const horaLlegada = calcularHoraLlegadaDesdeDuracion(hora, formulario.duracion);
+                            setFormulario({ ...formulario, horaSalida: hora, horaLlegada });
                           } else {
                             setFormulario({ ...formulario, horaSalida: hora });
                           }
                         }}
                         required
+                        disabled={!formulario.origenCodigo || !formulario.destinoCodigo || !formulario.fecha || cargandoHoras}
                         style={{
                           width: '100%',
                           height: '48px',
                           padding: '0 16px',
-                          border: '1px solid #e2e8f0',
+                          border: horasDisponibles.length === 0 && formulario.origenCodigo && formulario.destinoCodigo && formulario.fecha && !cargandoHoras
+                            ? '2px solid #dc3545'
+                            : '1px solid #e2e8f0',
                           borderRadius: '8px',
                           fontSize: '14px',
-                          background: '#fff'
+                          background: cargandoHoras ? '#f3f4f6' : '#fff',
+                          cursor: (!formulario.origenCodigo || !formulario.destinoCodigo || !formulario.fecha) ? 'not-allowed' : 'pointer'
                         }}
-                      />
+                      >
+                        <option value="">
+                          {cargandoHoras 
+                            ? 'Cargando horarios...' 
+                            : !formulario.origenCodigo || !formulario.destinoCodigo || !formulario.fecha
+                              ? 'Complete ruta y fecha primero'
+                              : horasDisponibles.length === 0
+                                ? 'No hay horarios disponibles'
+                                : 'Seleccione hora de salida'
+                          }
+                        </option>
+                        {horasDisponibles.map((hora) => (
+                          <option key={hora.valor || hora.hora} value={hora.valor || hora.hora}>
+                            {hora.horaFormato} → Llegada: {hora.horaLlegadaFormato}
+                            {hora.espaciosDisponibles && hora.espaciosDisponibles > 1 ? ` (${hora.espaciosDisponibles} espacios)` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      
+                      {/* Mostrar horas ocupadas como referencia */}
+                      {horasOcupadas.length > 0 && (
+                        <details style={{ marginTop: '10px' }}>
+                          <summary 
+                            style={{ 
+                              cursor: 'pointer', 
+                              color: '#6b7280',
+                              fontSize: '12px',
+                              userSelect: 'none'
+                            }}
+                          >
+                            Ver {horasOcupadas.length} horario(s) ocupado(s)
+                          </summary>
+                          <div style={{ marginTop: '8px', maxHeight: '120px', overflowY: 'auto' }}>
+                            {horasOcupadas.map((hora, idx) => (
+                              <div 
+                                key={idx}
+                                style={{
+                                  padding: '6px 10px',
+                                  background: '#fef2f2',
+                                  border: '1px solid #fecaca',
+                                  borderRadius: '4px',
+                                  marginBottom: '4px',
+                                  fontSize: '12px'
+                                }}
+                              >
+                                <span style={{ color: '#991b1b' }}>{hora.horaFormato}</span>
+                                {hora.vuelosEnHora && hora.vuelosEnHora.length > 0 && (
+                                  <span style={{ color: '#6b7280', marginLeft: '8px' }}>
+                                    ({hora.vuelosEnHora.join(', ')})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
                     </div>
                   </div>
                 </div>
