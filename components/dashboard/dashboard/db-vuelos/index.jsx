@@ -1291,7 +1291,6 @@ const GestionVuelos = () => {
                         {horasDisponibles.map((hora) => (
                           <option key={hora.valor || hora.hora} value={hora.valor || hora.hora}>
                             {hora.horaFormato} → Llegada: {hora.horaLlegadaFormato}
-                            {hora.espaciosDisponibles && hora.espaciosDisponibles > 1 ? ` (${hora.espaciosDisponibles} espacios)` : ''}
                           </option>
                         ))}
                       </select>
